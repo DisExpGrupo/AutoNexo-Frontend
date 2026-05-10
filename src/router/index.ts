@@ -80,9 +80,14 @@ router.beforeEach(async (to) => {
   if (
     isWorkshopManager &&
     authStore.workshopId === null &&
+    isVerified &&
     !to.path.startsWith('/workshop/register')
   ) {
     return { name: 'workshop-registration' };
+  }
+
+  if (isWorkshopManager && authStore.workshopId !== null && to.path === '/workshop/register') {
+    return { name: 'dashboard' };
   }
 });
 
