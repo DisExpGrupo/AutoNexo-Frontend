@@ -1,5 +1,7 @@
 import http from '@/lib/apiClient';
 
+const BASE_URL = '/v1/workshops';
+
 export interface CreateWorkshopRequest {
   ownerUserId: number;
   name: string;
@@ -27,12 +29,12 @@ export interface Workshop {
 
 export const workshopService = {
   async createWorkshop(data: CreateWorkshopRequest): Promise<Workshop> {
-    const response = await http.post<Workshop>('/workshops', data);
+    const response = await http.post<Workshop>(`${BASE_URL}`, data);
     return response.data;
   },
 
   async getMyWorkshop(): Promise<Workshop> {
-    const response = await http.get<Workshop>('/workshops/my-workshop');
+    const response = await http.get<Workshop>(`${BASE_URL}/my-workshop`);
     return response.data;
   }
 };

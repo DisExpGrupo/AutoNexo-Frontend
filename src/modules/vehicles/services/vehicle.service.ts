@@ -1,5 +1,7 @@
 import http from '@/lib/apiClient';
 
+const BASE_URL = '/v1/vehicles';
+
 export interface CreateVehicleRequest {
   brandId: number;
   model: string;
@@ -26,17 +28,17 @@ export interface Vehicle {
 
 export const vehicleService = {
   async createVehicle(data: CreateVehicleRequest): Promise<Vehicle> {
-    const response = await http.post<Vehicle>('/vehicles', data);
+    const response = await http.post<Vehicle>(`${BASE_URL}`, data);
     return response.data;
   },
   
   async getMyVehicles(): Promise<Vehicle[]> {
-    const response = await http.get<Vehicle[]>('/vehicles');
+    const response = await http.get<Vehicle[]>(`${BASE_URL}`);
     return response.data;
   },
   
   async getVehicleById(id: number): Promise<Vehicle> {
-    const response = await http.get<Vehicle>(`/vehicles/${id}`);
+    const response = await http.get<Vehicle>(`${BASE_URL}/${id}`);
     return response.data;
   }
 };
