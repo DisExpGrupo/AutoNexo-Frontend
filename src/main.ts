@@ -5,6 +5,7 @@ import Material from '@primevue/themes/material'
 import ToastService from 'primevue/toastservice'
 import Toast from 'primevue/toast'
 import 'primeicons/primeicons.css'
+import 'leaflet/dist/leaflet.css'
 import './style.css'
 
 import App from './App.vue'
