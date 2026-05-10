@@ -7,13 +7,10 @@ const authStore = useAuthStore();
 
 const sidebarItems = computed(() => {
   const role = authStore.userRole;
+  const hasWorkshop = authStore.workshopId !== null;
 
   const base = [
-    {
-      label: 'Dashboard',
-      icon: 'pi pi-home',
-      route: '/dashboard',
-    },
+    { label: 'Dashboard', icon: 'pi pi-home', route: '/dashboard' },
   ];
 
   if (role === UserRole.CAR_OWNER) {
@@ -26,11 +23,18 @@ const sidebarItems = computed(() => {
   }
 
   if (role === UserRole.WORKSHOP_MANAGER || role === UserRole.WORKSHOP_EMPLOYEE) {
+    const workshopLinks = hasWorkshop
+      ? [
+          { label: 'My Workshop', icon: 'pi pi-building', route: '/workshop' },
+          { label: 'Requests', icon: 'pi pi-inbox', route: '/requests' },
+          { label: 'Team', icon: 'pi pi-users', route: '/team' },
+        ]
+      : [];
+
     return [
       ...base,
-      { label: 'My Workshop', icon: 'pi pi-building', route: '/workshop' },
-      { label: 'Requests', icon: 'pi pi-inbox', route: '/requests' },
-      { label: 'Team', icon: 'pi pi-users', route: '/team' },
+      { label: 'Register Workshop', icon: 'pi pi-plus', route: '/workshop/register' },
+      ...workshopLinks,
     ];
   }
 
