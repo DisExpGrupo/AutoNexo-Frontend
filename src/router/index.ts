@@ -46,6 +46,30 @@ const router = createRouter({
           meta: { verificationRequired: true },
         },
         {
+          path: 'vehicles/register',
+          name: 'vehicle-registration',
+          component: () => import('@/modules/vehicles/views/VehicleRegistrationView.vue'),
+          meta: { verificationRequired: true },
+        },
+        {
+          path: 'vehicles/:id',
+          name: 'vehicle-detail',
+          component: () => import('@/modules/vehicles/views/VehicleDetailView.vue'),
+          meta: { verificationRequired: true },
+        },
+        {
+          path: 'service-requests/new',
+          name: 'create-service-request',
+          component: () => import('@/modules/matching/views/CreateServiceRequestView.vue'),
+          meta: { verificationRequired: true },
+        },
+        {
+          path: 'service-requests/:id',
+          name: 'service-request-detail',
+          component: () => import('@/modules/matching/views/ServiceRequestDetailView.vue'),
+          meta: { verificationRequired: true },
+        },
+        {
           path: 'test',
           name: 'home',
           component: () => import('@/views/HomeView.vue'),
