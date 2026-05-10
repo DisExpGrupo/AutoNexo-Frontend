@@ -1,13 +1,12 @@
 import { defineStore } from 'pinia';
 import { authService } from '../services/auth.service';
-import type { 
-  AuthResponse, 
-  SignInRequest, 
-  SignUpRequest, 
-  User, 
-  VerifyEmailRequest 
+import type {
+  AuthResponse,
+  SignInRequest,
+  SignUpRequest,
+  User,
+  VerifyEmailRequest
 } from '../models/auth.model';
-import router from '@/router';
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -74,7 +73,6 @@ export const useAuthStore = defineStore('auth', {
       this.user = null;
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      router.push('/');
     }
   }
 });
