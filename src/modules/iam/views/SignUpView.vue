@@ -23,7 +23,7 @@ const form = ref({
 
 const roleOptions = [
   { label: 'Car Owner', value: UserRole.CAR_OWNER },
-  { label: 'Workshop Owner', value: UserRole.WORKSHOP_OWNER },
+  { label: 'Workshop Manager', value: UserRole.WORKSHOP_MANAGER },
 ];
 
 async function handleRegister() {
