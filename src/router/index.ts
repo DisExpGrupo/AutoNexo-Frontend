@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import { useAuthStore } from '@/modules/iam/store/auth';
 import MainLayout from '@/shared/layouts/MainLayout.vue';
+import { UserRole } from '@/modules/iam/models/auth.model';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -39,6 +40,12 @@ const router = createRouter({
           meta: { verificationRequired: true },
         },
         {
+          path: 'workshop/register',
+          name: 'workshop-registration',
+          component: () => import('@/modules/workshop/views/WorkshopRegistrationView.vue'),
+          meta: { verificationRequired: true },
+        },
+        {
           path: 'test',
           name: 'home',
           component: () => import('@/views/HomeView.vue'),
@@ -56,6 +63,7 @@ router.beforeEach(async (to) => {
   const verificationRequired = to.matched.some((r) => r.meta.verificationRequired);
   const isAuthenticated = authStore.isAuthenticated;
   const isVerified = authStore.isVerified;
+  const isWorkshopManager = authStore.userRole === UserRole.WORKSHOP_MANAGER;
 
   if (authRequired && !isAuthenticated) {
     return { name: 'login' };
@@ -67,6 +75,14 @@ router.beforeEach(async (to) => {
 
   if (isPublic && to.name !== 'verify-email' && isAuthenticated && isVerified) {
     return { name: 'dashboard' };
+  }
+
+  if (
+    isWorkshopManager &&
+    authStore.workshopId === null &&
+    !to.path.startsWith('/workshop/register')
+  ) {
+    return { name: 'workshop-registration' };
   }
 });
 
