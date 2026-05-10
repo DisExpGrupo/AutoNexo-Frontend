@@ -41,3 +41,7 @@ Vue 3.5 + Vite 5 + TypeScript 5.5 + PrimeVue 4 (Material theme) + Pinia + Vue Ro
 - No linter or formatter is configured. Follow existing file style.
 - TypeScript strict mode with `noUnusedLocals` and `noUnusedParameters` enabled — unused vars will fail the build.
 - PrimeVue components are imported individually (e.g. `import Button from 'primevue/button'`).
+
+## Design
+
+- See `DESIGN.md` for design tokens (colors, typography, spacing, shapes). Implement tokens as CSS variables in `src/style.css` and reference via Tailwind/PrimeVue.
