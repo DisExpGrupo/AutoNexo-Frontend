@@ -20,7 +20,7 @@ export const useAuthStore = defineStore('auth', {
   getters: {
     isAuthenticated: (state) => !!state.token,
     isVerified: (state) => state.user?.isVerified || false,
-    userRole: (state) => state.user?.roles[0] || null,
+    userRole: (state) => state.user?.roles?.[0] || null,
   },
 
   actions: {

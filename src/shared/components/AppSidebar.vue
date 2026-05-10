@@ -23,18 +23,18 @@ const sidebarItems = computed(() => {
   }
 
   if (role === UserRole.WORKSHOP_MANAGER || role === UserRole.WORKSHOP_EMPLOYEE) {
-    const workshopLinks = hasWorkshop
-      ? [
-          { label: 'My Workshop', icon: 'pi pi-building', route: '/workshop' },
-          { label: 'Requests', icon: 'pi pi-inbox', route: '/requests' },
-          { label: 'Team', icon: 'pi pi-users', route: '/team' },
-        ]
-      : [];
+    if (hasWorkshop) {
+      return [
+        ...base,
+        { label: 'My Workshop', icon: 'pi pi-building', route: '/workshop' },
+        { label: 'Requests', icon: 'pi pi-inbox', route: '/requests' },
+        { label: 'Team', icon: 'pi pi-users', route: '/team' },
+      ];
+    }
 
     return [
       ...base,
       { label: 'Register Workshop', icon: 'pi pi-plus', route: '/workshop/register' },
-      ...workshopLinks,
     ];
   }
 
