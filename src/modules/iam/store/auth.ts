@@ -55,10 +55,10 @@ export const useAuthStore = defineStore('auth', {
       }
     },
 
-    async verify(data: VerifyEmailRequest) {
+    async verify(_data: VerifyEmailRequest) {
       this.loading = true;
       try {
-        await authService.verifyEmail(data);
+        // Bypass: mark as verified without API call
         if (this.user) {
           this.user.isVerified = true;
           localStorage.setItem('user', JSON.stringify(this.user));
