@@ -28,6 +28,7 @@ const sidebarItems = computed(() => {
         ...base,
         { label: 'My Workshop', icon: 'pi pi-building', route: '/workshop' },
         { label: 'Requests', icon: 'pi pi-inbox', route: '/requests' },
+        { label: 'Agenda', icon: 'pi pi-calendar', route: '/agenda' },
         { label: 'Team', icon: 'pi pi-users', route: '/team' },
       ];
     }

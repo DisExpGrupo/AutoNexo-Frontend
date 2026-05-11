@@ -52,6 +52,24 @@ const router = createRouter({
           meta: { verificationRequired: true },
         },
         {
+          path: 'requests',
+          name: 'service-requests-hub',
+          component: () => import('@/modules/workshop/views/ServiceRequestsView.vue'),
+          meta: { verificationRequired: true },
+        },
+        {
+          path: 'agenda',
+          name: 'workshop-agenda',
+          component: () => import('@/modules/matching/views/WorkshopAgendaView.vue'),
+          meta: { verificationRequired: true },
+        },
+        {
+          path: 'vehicles',
+          name: 'vehicles',
+          component: () => import('@/modules/vehicles/views/VehiclesView.vue'),
+          meta: { verificationRequired: true },
+        },
+        {
           path: 'vehicles/register',
           name: 'vehicle-registration',
           component: () => import('@/modules/vehicles/views/VehicleRegistrationView.vue'),
@@ -67,6 +85,12 @@ const router = createRouter({
           path: 'service-requests/new',
           name: 'create-service-request',
           component: () => import('@/modules/matching/views/CreateServiceRequestView.vue'),
+          meta: { verificationRequired: true },
+        },
+        {
+          path: 'service-requests',
+          name: 'car-owner-requests',
+          component: () => import('@/modules/matching/views/CarOwnerRequestsView.vue'),
           meta: { verificationRequired: true },
         },
         {

@@ -84,6 +84,24 @@ export interface ServiceTemplate {
   updatedAt: string | null;
 }
 
+export interface UserLocation {
+  latitude: number;
+  longitude: number;
+}
+
+export interface AvailableServiceRequest {
+  id: number;
+  vehicleId: number;
+  description: string;
+  requestedServices: string[];  // Lo que el cliente pidió
+  matchingServices: string[];   // Lo que tú ofreces que coincide
+  matchScore: number;           // Nivel de compatibilidad (0.0 a 1.0)
+  distanceKm: number;           // Distancia al cliente
+  userLocation: UserLocation;   // Ubicación del cliente para el mapa
+  status: 'PENDING' | 'CANCELLED' | 'COMPLETED' | 'REJECTED';
+  createdAt: string;
+}
+
 export const workshopService = {
   async createWorkshop(data: CreateWorkshopRequest): Promise<Workshop> {
     const response = await http.post<Workshop>(`${BASE_URL}`, data);
@@ -121,6 +139,11 @@ export const workshopService = {
 
   async getPublicWorkshop(workshopId: number): Promise<any> {
     const response = await http.get<any>(`${BASE_URL}/${workshopId}/public`);
+    return response.data;
+  },
+
+  async getAvailableRequests(): Promise<AvailableServiceRequest[]> {
+    const response = await http.get<AvailableServiceRequest[]>(`${BASE_URL}/my-workshop/available-requests`);
     return response.data;
   },
 };
