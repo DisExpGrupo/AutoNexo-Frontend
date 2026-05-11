@@ -59,7 +59,6 @@ const calendarDays = computed(() => {
   const month = calendarMonth.value.getMonth();
   const firstOfMonth = new Date(year, month, 1);
   const startIndex = (firstOfMonth.getDay() + 6) % 7;
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
   const days: Array<{
     date: Date;
     key: string;
