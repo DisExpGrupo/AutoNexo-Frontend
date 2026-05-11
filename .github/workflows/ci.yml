@@ -2,9 +2,9 @@ name: Frontend Continuous Integration
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main, develop, feature/no-confirmation ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, feature/no-confirmation ]
 
 jobs:
   build-and-test:
