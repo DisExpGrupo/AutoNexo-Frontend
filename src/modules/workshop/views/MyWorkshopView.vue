@@ -327,6 +327,7 @@ function loadPublicPreview() {
 }
 
 function formatPrice(amount: number, currency: string): string {
+  if (!currency) return new Intl.NumberFormat('es-PE', { style: 'decimal', minimumFractionDigits: 2 }).format(amount);
   return new Intl.NumberFormat('es-PE', { style: 'currency', currency }).format(amount);
 }
 </script>
