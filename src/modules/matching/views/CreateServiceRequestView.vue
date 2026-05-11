@@ -212,25 +212,35 @@ async function handleSubmit() {
         </div>
 
         <div class="sr-form-group">
-          <label for="services" class="sr-form-label">
+          <span class="sr-form-label">
             Services Needed <span class="sr-form-required" aria-hidden="true">*</span>
-          </label>
-          <div class="sr-select-wrapper">
-            <select
-              id="services"
-              v-model="selectedServiceCodes"
-              class="sr-select"
-              multiple
-              size="5"
-              style="height: auto;"
-              :aria-invalid="!!errors.services"
+          </span>
+          <div class="services-grid" role="group" aria-label="Select services">
+            <label
+              v-for="svc in services"
+              :key="svc.code"
+              class="service-checkbox-item"
+              :class="{ 'service-checkbox-item--selected': selectedServiceCodes.includes(svc.code) }"
             >
-              <option v-for="svc in services" :key="svc.code" :value="svc.code">
-                {{ svc.displayName }}
-              </option>
-            </select>
-            <p class="sr-form-hint">Hold Ctrl / Cmd to select multiple services</p>
+              <input
+                type="checkbox"
+                :value="svc.code"
+                v-model="selectedServiceCodes"
+                class="service-checkbox-input"
+              />
+              <span class="service-checkbox-box" aria-hidden="true">
+                <svg v-if="selectedServiceCodes.includes(svc.code)" width="12" height="12" viewBox="0 0 12 12" fill="none">
+                  <path d="M2 6l3 3 5-5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </span>
+              <span class="service-checkbox-content">
+                <span class="service-checkbox-name">{{ svc.displayName }}</span>
+                <span class="service-checkbox-category">{{ svc.categoryDisplayName }}</span>
+              </span>
+            </label>
           </div>
+          <span v-if="errors.services" class="sr-form-field-error" role="alert">{{ errors.services }}</span>
+          <p v-else class="sr-form-hint">{{ selectedServiceCodes.length }} service{{ selectedServiceCodes.length !== 1 ? 's' : '' }} selected</p>
         </div>
 
         <div class="sr-form-group">
@@ -549,6 +559,84 @@ async function handleSubmit() {
 .sr-select option {
   background: #1a2630;
   color: #F8FAFC;
+}
+
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px;
+}
+
+.service-checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #0f1920;
+  border: 1px solid rgba(94, 119, 149, 0.2);
+  border-radius: 10px;
+  padding: 12px 14px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.service-checkbox-item:hover {
+  border-color: rgba(27, 122, 90, 0.4);
+  background: rgba(27, 122, 90, 0.05);
+}
+
+.service-checkbox-item--selected {
+  border-color: #1B7A5A;
+  background: rgba(27, 122, 90, 0.08);
+}
+
+.service-checkbox-input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.service-checkbox-box {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  border: 2px solid #5E7795;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.service-checkbox-item--selected .service-checkbox-box {
+  border-color: #1B7A5A;
+  background: #1B7A5A;
+}
+
+.service-checkbox-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.service-checkbox-name {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #F8FAFC;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.service-checkbox-category {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #799AB7;
 }
 
 .sr-textarea {
