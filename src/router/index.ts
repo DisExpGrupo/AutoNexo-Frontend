@@ -46,6 +46,12 @@ const router = createRouter({
           meta: { verificationRequired: true },
         },
         {
+          path: 'workshop',
+          name: 'my-workshop',
+          component: () => import('@/modules/workshop/views/MyWorkshopView.vue'),
+          meta: { verificationRequired: true },
+        },
+        {
           path: 'vehicles/register',
           name: 'vehicle-registration',
           component: () => import('@/modules/vehicles/views/VehicleRegistrationView.vue'),
