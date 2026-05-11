@@ -275,8 +275,7 @@ async function handleSubmit() {
               v-model="form.latitude"
               type="number"
               step="any"
-              class="sr-input sr-input--disabled"
-              disabled
+              class="sr-input"
               placeholder="—"
               aria-readonly="true"
             />
@@ -289,8 +288,7 @@ async function handleSubmit() {
               v-model="form.longitude"
               type="number"
               step="any"
-              class="sr-input sr-input--disabled"
-              disabled
+              class="sr-input"
               placeholder="—"
               aria-readonly="true"
             />
