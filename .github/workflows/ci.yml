@@ -1,0 +1,34 @@
+name: Frontend Continuous Integration
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10 # Asegúrate de que coincida con tu versión local
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        # Usamos --no-frozen-lockfile para evitar el error que tuviste en Vercel
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Run Unit & Integration Tests
+        # Según tu README: Vitest en modo ejecución única
+        run: pnpm test run

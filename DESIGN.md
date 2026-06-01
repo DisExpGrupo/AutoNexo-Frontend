@@ -47,7 +47,7 @@ spacing:
 # UX/UI Strategy & Guidelines
 
 ## 1. Visual Identity
-AutoNexo is a professional, tech-oriented ecosystem for automotive management. The design must evoke **trust, precision, and modern industrial aesthetics**.
+AutoNexo is a professional, techg-oriented ecosystem for automotive management. The design must evoke **trust, precision, and modern industrial aesthetics**.
 
 ## 2. Color Logic & Hierarchy
 *   **Theme:** Dark mode is the default. Background is `primary.main`, cards use `#1a2630`, inputs use `#0f1920`.
