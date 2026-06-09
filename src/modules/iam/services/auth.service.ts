@@ -2,7 +2,6 @@ import http from '@/lib/apiClient';
 import type { 
   SignInRequest, 
   SignUpRequest, 
-  VerifyEmailRequest, 
   AuthResponse 
 } from '../models/auth.model';
 
@@ -25,12 +24,4 @@ export const authService = {
     return response.data;
   },
 
-  /**
-   * Verifica el email usando el token UUID enviado por correo.
-   * Nota: El interceptor adjuntará el Bearer Token automáticamente.
-   */
-  async verifyEmail(data: VerifyEmailRequest): Promise<string> {
-    const response = await http.post<string>(`${BASE_URL}/verify-email`, data);
-    return response.data;
-  }
-};
+  };

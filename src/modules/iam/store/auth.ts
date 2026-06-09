@@ -4,8 +4,7 @@ import type {
   AuthResponse,
   SignInRequest,
   SignUpRequest,
-  User,
-  VerifyEmailRequest
+  User
 } from '../models/auth.model';
 
 export const useAuthStore = defineStore('auth', {
@@ -50,19 +49,6 @@ export const useAuthStore = defineStore('auth', {
       this.loading = true;
       try {
         await authService.signUp(data);
-      } finally {
-        this.loading = false;
-      }
-    },
-
-    async verify(data: VerifyEmailRequest) {
-      this.loading = true;
-      try {
-        await authService.verifyEmail(data);
-        if (this.user) {
-          this.user.isVerified = true;
-          localStorage.setItem('user', JSON.stringify(this.user));
-        }
       } finally {
         this.loading = false;
       }

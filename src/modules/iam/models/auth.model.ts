@@ -41,6 +41,4 @@ export interface SignInRequest {
   password: string;
 }
 
-export interface VerifyEmailRequest {
-  token: string;
-}
+
