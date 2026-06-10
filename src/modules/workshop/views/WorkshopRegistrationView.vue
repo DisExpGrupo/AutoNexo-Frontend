@@ -51,67 +51,74 @@ async function handleSubmit() {
       <p class="an-dashboard-subtitle">Set up your workshop profile to start receiving service requests.</p>
     </div>
 
-    <Card class="workshop-reg-card">
+    <Card class="max-w-[600px]">
       <template #content>
         <form @submit.prevent="handleSubmit" class="flex flex-col gap-6" novalidate>
-          <div class="flex flex-col gap-2">
-            <label for="name" class="form-label">Workshop Name</label>
+          <div class="flex flex-col gap-1.5">
+            <label for="name" class="text-[0.7rem] font-mono font-bold uppercase tracking-wider text-[var(--p-text-muted-color)]">
+              Workshop Name
+            </label>
             <InputText
               id="name"
               v-model="form.name"
               placeholder="AutoNexo Workshop"
-              class="form-input w-full"
+              class="w-full"
               required
             />
           </div>
 
-          <div class="flex flex-col gap-2">
-            <label for="legalName" class="form-label">Legal Name</label>
+          <div class="flex flex-col gap-1.5">
+            <label for="legalName" class="text-[0.7rem] font-mono font-bold uppercase tracking-wider text-[var(--p-text-muted-color)]">
+              Legal Name
+            </label>
             <InputText
               id="legalName"
               v-model="form.legalName"
               placeholder="AutoNexo S.A.C."
-              class="form-input w-full"
+              class="w-full"
               required
             />
           </div>
 
-          <div class="flex flex-col gap-2">
-            <label for="ruc" class="form-label">RUC</label>
+          <div class="flex flex-col gap-1.5">
+            <label for="ruc" class="text-[0.7rem] font-mono font-bold uppercase tracking-wider text-[var(--p-text-muted-color)]">
+              RUC
+            </label>
             <InputText
               id="ruc"
               v-model="form.ruc"
               placeholder="12345678910"
-              class="form-input w-full"
+              class="w-full"
               required
             />
           </div>
 
-          <div class="flex flex-col gap-2">
-            <label for="shortDescription" class="form-label">Short Description</label>
+          <div class="flex flex-col gap-1.5">
+            <label for="shortDescription" class="text-[0.7rem] font-mono font-bold uppercase tracking-wider text-[var(--p-text-muted-color)]">
+              Short Description
+            </label>
             <Textarea
               id="shortDescription"
               v-model="form.shortDescription"
               placeholder="Describe your workshop services and expertise..."
-              class="form-input w-full"
+              class="w-full"
               rows="3"
               required
             />
           </div>
 
-          <div class="flex justify-end gap-3 pt-4">
+          <div class="flex justify-end gap-3 pt-6 border-t border-[rgba(94,119,149,0.15)]">
             <Button
               type="button"
               label="Cancel"
               severity="secondary"
-              class="form-btn-secondary"
+              outlined
               @click="router.push({ name: 'dashboard' })"
             />
             <Button
               type="submit"
               label="Register Workshop"
               :loading="submitting"
-              class="form-btn-primary"
             />
           </div>
         </form>
@@ -119,64 +126,3 @@ async function handleSubmit() {
     </Card>
   </div>
 </template>
-
-<style scoped>
-.workshop-reg-card {
-  background: #1a2630;
-  border: 1px solid rgba(94, 119, 149, 0.15);
-  border-radius: 16px;
-  max-width: 600px;
-}
-
-.form-label {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: #799AB7;
-}
-
-.form-input {
-  background: #0f1920;
-  border: 1px solid #5E7795;
-  border-radius: 8px;
-  color: #F8FAFC;
-  padding: 10px 14px;
-}
-
-.form-input:focus {
-  border-color: #1B7A5A;
-  box-shadow: 0 0 0 2px rgba(27, 122, 90, 0.25);
-  outline: none;
-}
-
-.form-btn-primary {
-  background: #1B7A5A;
-  border: none;
-  border-radius: 8px;
-  font-family: 'IBM Plex Mono', monospace;
-  font-weight: 700;
-  padding: 10px 24px;
-  color: #F8FAFC;
-}
-
-.form-btn-primary:hover {
-  background: #165c48;
-}
-
-.form-btn-secondary {
-  background: transparent;
-  border: 1px solid #5E7795;
-  border-radius: 8px;
-  font-family: 'IBM Plex Mono', monospace;
-  font-weight: 700;
-  padding: 10px 24px;
-  color: #799AB7;
-}
-
-.form-btn-secondary:hover {
-  border-color: #799AB7;
-  background: rgba(94, 119, 149, 0.1);
-}
-</style>
