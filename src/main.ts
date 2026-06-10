@@ -1,8 +1,8 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import PrimeVue from 'primevue/config'
-import Material from '@primevue/themes/material'
 import ToastService from 'primevue/toastservice'
+import { AutoNexo } from './themes/autonexo'
 import Toast from 'primevue/toast'
 import 'primeicons/primeicons.css'
 import 'leaflet/dist/leaflet.css'
@@ -17,7 +17,7 @@ app.use(createPinia())
 app.use(router)
 app.use(PrimeVue, {
   theme: {
-    preset: Material,
+    preset: AutoNexo,
     options: {
       darkModeSelector: 'body'
     }
