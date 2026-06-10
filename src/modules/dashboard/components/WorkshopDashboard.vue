@@ -4,6 +4,8 @@ import { useAuthStore } from '@/modules/iam/store/auth';
 import { workshopService } from '@/modules/workshop/services/workshop.service';
 import type { Workshop } from '@/modules/workshop/services/workshop.service';
 import Button from 'primevue/button';
+import Card from 'primevue/card';
+import Skeleton from 'primevue/skeleton';
 
 const authStore = useAuthStore();
 
@@ -28,6 +30,13 @@ function getGreeting(): string {
   if (hour < 18) return 'Good afternoon';
   return 'Good evening';
 }
+
+const stats = [
+  { label: 'Incoming Requests', value: '0', icon: 'pi pi-inbox' },
+  { label: 'In Progress', value: '0', icon: 'pi pi-cog' },
+  { label: 'Completed Today', value: '0', icon: 'pi pi-check-circle' },
+  { label: 'Active Staff', value: '0', icon: 'pi pi-users' },
+];
 </script>
 
 <template>
@@ -37,6 +46,9 @@ function getGreeting(): string {
         <h1 class="an-dashboard-title">{{ getGreeting() }}, {{ authStore.user?.firstName }}</h1>
         <p class="an-dashboard-subtitle">Loading workshop data...</p>
       </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Skeleton v-for="i in 4" :key="i" height="8rem" />
+      </div>
     </template>
 
     <template v-else-if="!workshop">
@@ -45,20 +57,25 @@ function getGreeting(): string {
         <p class="an-dashboard-subtitle">Welcome to AutoNexo. Register your workshop to get started.</p>
       </div>
 
-      <div class="workshop-empty-state">
-        <div class="workshop-empty-icon">
-          <i class="pi pi-building" />
-        </div>
-        <h2 class="workshop-empty-title">No Workshop Registered</h2>
-        <p class="workshop-empty-text">
-          You haven't set up your workshop yet. Create your workshop profile to start receiving service requests from car owners.
-        </p>
-        <Button
-          label="Register My Workshop"
-          class="workshop-empty-btn"
-          @click="$router.push({ name: 'workshop-registration' })"
-        />
-      </div>
+      <Card class="max-w-lg mt-8">
+        <template #content>
+          <div class="flex flex-col items-center text-center gap-6 py-8">
+            <div class="w-16 h-16 rounded-full bg-[rgba(27,122,90,0.15)] flex items-center justify-center">
+              <i class="pi pi-building text-2xl text-[var(--p-primary-color)]" />
+            </div>
+            <div>
+              <h2 class="text-2xl font-bold mb-3">No Workshop Registered</h2>
+              <p class="text-[var(--p-text-muted-color)] leading-relaxed">
+                You haven't set up your workshop yet. Create your workshop profile to start receiving service requests from car owners.
+              </p>
+            </div>
+            <Button
+              label="Register My Workshop"
+              @click="$router.push({ name: 'workshop-registration' })"
+            />
+          </div>
+        </template>
+      </Card>
     </template>
 
     <template v-else>
@@ -67,101 +84,21 @@ function getGreeting(): string {
         <p class="an-dashboard-subtitle">Monitor your workshop operations and incoming requests.</p>
       </div>
 
-      <div class="an-dashboard-grid">
-        <div class="an-dashboard-card">
-          <div class="an-dashboard-card-icon">
-            <i class="pi pi-inbox" />
-          </div>
-          <h3 class="an-dashboard-card-label">Incoming Requests</h3>
-          <p class="an-dashboard-card-value">0</p>
-        </div>
-
-        <div class="an-dashboard-card">
-          <div class="an-dashboard-card-icon an-dashboard-card-icon--active">
-            <i class="pi pi-cog" />
-          </div>
-          <h3 class="an-dashboard-card-label">In Progress</h3>
-          <p class="an-dashboard-card-value">0</p>
-        </div>
-
-        <div class="an-dashboard-card">
-          <div class="an-dashboard-card-icon an-dashboard-card-icon--success">
-            <i class="pi pi-check-circle" />
-          </div>
-          <h3 class="an-dashboard-card-label">Completed Today</h3>
-          <p class="an-dashboard-card-value">0</p>
-        </div>
-
-        <div class="an-dashboard-card">
-          <div class="an-dashboard-card-icon">
-            <i class="pi pi-users" />
-          </div>
-          <h3 class="an-dashboard-card-label">Active Staff</h3>
-          <p class="an-dashboard-card-value">0</p>
-        </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card v-for="stat in stats" :key="stat.label">
+          <template #content>
+            <div class="flex items-center gap-4">
+              <div class="w-10 h-10 rounded-lg bg-[rgba(27,122,90,0.12)] flex items-center justify-center text-[var(--p-primary-color)]">
+                <i :class="stat.icon" />
+              </div>
+              <div>
+                <p class="text-xs font-semibold uppercase tracking-wider text-[var(--p-text-muted-color)]">{{ stat.label }}</p>
+                <p class="text-2xl font-bold font-mono">{{ stat.value }}</p>
+              </div>
+            </div>
+          </template>
+        </Card>
       </div>
     </template>
   </div>
 </template>
-
-<style scoped>
-.workshop-empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: 64px 32px;
-  background: #1a2630;
-  border: 1px solid rgba(94, 119, 149, 0.15);
-  border-radius: 16px;
-  max-width: 520px;
-  margin-top: 32px;
-}
-
-.workshop-empty-icon {
-  width: 72px;
-  height: 72px;
-  border-radius: 50%;
-  background: rgba(27, 122, 90, 0.15);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 24px;
-}
-
-.workshop-empty-icon .pi {
-  font-size: 2rem;
-  color: #1B7A5A;
-}
-
-.workshop-empty-title {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #F8FAFC;
-  margin: 0 0 12px;
-}
-
-.workshop-empty-text {
-  font-family: 'Inter', sans-serif;
-  font-size: 1rem;
-  color: #799AB7;
-  margin: 0 0 32px;
-  line-height: 1.6;
-}
-
-.workshop-empty-btn {
-  background: #1B7A5A;
-  border: none;
-  border-radius: 8px;
-  font-family: 'IBM Plex Mono', monospace;
-  font-weight: 700;
-  padding: 12px 28px;
-  color: #F8FAFC;
-}
-
-.workshop-empty-btn:hover {
-  background: #165c48;
-}
-</style>
