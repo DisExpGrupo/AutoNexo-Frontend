@@ -6,6 +6,8 @@ import Button from 'primevue/button';
 import InputText from 'primevue/inputtext';
 import Message from 'primevue/message';
 import Password from 'primevue/password';
+import Card from 'primevue/card';
+import Divider from 'primevue/divider';
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -27,70 +29,73 @@ async function handleLogin() {
 <template>
   <div class="auth-grid-bg min-h-screen flex items-center justify-center p-6">
     <div class="w-full max-w-md">
-      <div class="auth-card p-8" id="main-content" role="main">
-        <div class="mb-8">
-          <p class="auth-label mb-2">AutoNexo</p>
-          <h1 class="auth-heading text-3xl text-white">Sign In</h1>
-        </div>
-
-        <Message
-          v-if="authStore.error"
-          severity="error"
-          class="mb-6"
-          :closable="false"
-          role="alert"
-          aria-live="assertive"
-        >
-          {{ authStore.error }}
-        </Message>
-
-        <form @submit.prevent="handleLogin" class="flex flex-col gap-5" novalidate>
-          <div class="flex flex-col gap-2">
-            <label for="email" class="auth-label">Email</label>
-            <InputText
-              id="email"
-              ref="emailInput"
-              v-model="email"
-              type="email"
-              placeholder="operator@autonexo.com"
-              class="auth-input w-full py-3 px-4"
-              autocomplete="email"
-              :aria-invalid="!!authStore.error"
-              :aria-describedby="authStore.error ? 'login-error' : undefined"
-            />
+      <Card id="main-content" role="main">
+        <template #title>
+          <div class="mb-2">
+            <p class="text-sm font-medium text-[var(--p-primary-color)] mb-2">AutoNexo</p>
+            <h1 class="text-3xl font-bold">Sign In</h1>
           </div>
+        </template>
+        <template #content>
+          <Message
+            v-if="authStore.error"
+            severity="error"
+            class="mb-4"
+            :closable="false"
+            role="alert"
+            aria-live="assertive"
+          >
+            {{ authStore.error }}
+          </Message>
 
-          <div class="flex flex-col gap-2">
-            <label for="password" class="auth-label">Password</label>
-            <Password
-              id="password"
-              v-model="password"
-              placeholder="••••••••"
-              :feedback="false"
-              toggleMask
+          <form @submit.prevent="handleLogin" class="flex flex-col gap-4" novalidate>
+            <div class="flex flex-col gap-2">
+              <label for="email" class="font-medium text-sm">Email</label>
+              <InputText
+                id="email"
+                ref="emailInput"
+                v-model="email"
+                type="email"
+                placeholder="operator@autonexo.com"
+                class="w-full"
+                autocomplete="email"
+                :aria-invalid="!!authStore.error"
+                :aria-describedby="authStore.error ? 'login-error' : undefined"
+              />
+            </div>
+
+            <div class="flex flex-col gap-2">
+              <label for="password" class="font-medium text-sm">Password</label>
+              <Password
+                id="password"
+                v-model="password"
+                placeholder="••••••••"
+                :feedback="false"
+                toggleMask
+                class="w-full"
+                autocomplete="current-password"
+                :aria-invalid="!!authStore.error"
+              />
+            </div>
+
+            <Divider class="my-2" />
+
+            <Button
+              type="submit"
+              label="Authenticate"
+              :loading="authStore.loading"
               class="w-full"
-              inputClass="auth-input w-full py-3 px-4"
-              containerClass="border-0"
-              autocomplete="current-password"
-              :aria-invalid="!!authStore.error"
             />
-          </div>
+          </form>
 
-          <div class="auth-divider my-2" />
-
-          <Button
-            type="submit"
-            label="Authenticate"
-            :loading="authStore.loading"
-            class="auth-btn-primary w-full py-3 mt-1"
-          />
-        </form>
-
-        <p class="text-center mt-8 auth-text-muted text-sm">
-          No account?
-          <RouterLink to="/register" class="auth-link">Request access</RouterLink>
-        </p>
-      </div>
+          <p class="text-center mt-6 text-sm">
+            No account?
+            <RouterLink to="/register" class="text-[var(--p-primary-color)] hover:underline">
+              Request access
+            </RouterLink>
+          </p>
+        </template>
+      </Card>
     </div>
   </div>
 </template>

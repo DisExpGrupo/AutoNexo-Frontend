@@ -8,6 +8,8 @@ import type { ErrorResponse } from '@/modules/iam/models/auth.model';
 import Button from 'primevue/button';
 import InputText from 'primevue/inputtext';
 import SelectButton from 'primevue/selectbutton';
+import Card from 'primevue/card';
+import Divider from 'primevue/divider';
 import { useToast } from 'primevue/usetoast';
 
 const router = useRouter();
@@ -59,103 +61,108 @@ async function handleRegister() {
 <template>
   <div class="auth-grid-bg min-h-screen flex items-center justify-center p-6">
     <div class="w-full max-w-lg">
-      <div class="auth-card p-8" id="main-content" role="main">
-        <div class="mb-8">
-          <p class="auth-label mb-2">AutoNexo</p>
-          <h1 class="auth-heading text-3xl text-white">Create Account</h1>
-        </div>
+      <Card id="main-content" role="main">
+        <template #title>
+          <div class="mb-2">
+            <p class="text-sm font-medium text-[var(--p-primary-color)] mb-2">AutoNexo</p>
+            <h1 class="text-3xl font-bold">Create Account</h1>
+          </div>
+        </template>
+        <template #content>
+          <form @submit.prevent="handleRegister" class="flex flex-col gap-4" novalidate>
+            <div class="grid grid-cols-2 gap-4">
+              <div class="flex flex-col gap-2">
+                <label for="firstName" class="font-medium text-sm">First Name</label>
+                <InputText
+                  id="firstName"
+                  v-model="form.firstName"
+                  placeholder="John"
+                  class="w-full"
+                  autocomplete="given-name"
+                  required
+                />
+              </div>
+              <div class="flex flex-col gap-2">
+                <label for="lastName" class="font-medium text-sm">Last Name</label>
+                <InputText
+                  id="lastName"
+                  v-model="form.lastName"
+                  placeholder="Doe"
+                  class="w-full"
+                  autocomplete="family-name"
+                  required
+                />
+              </div>
+            </div>
 
-        <form @submit.prevent="handleRegister" class="flex flex-col gap-5" novalidate>
-          <div class="grid grid-cols-2 gap-4">
             <div class="flex flex-col gap-2">
-              <label for="firstName" class="auth-label">First Name</label>
+              <label for="email" class="font-medium text-sm">Email</label>
               <InputText
-                id="firstName"
-                v-model="form.firstName"
-                placeholder="John"
-                class="auth-input w-full py-3 px-4"
-                autocomplete="given-name"
+                id="email"
+                v-model="form.email"
+                type="email"
+                placeholder="operator@autonexo.com"
+                class="w-full"
+                autocomplete="email"
                 required
               />
             </div>
+
             <div class="flex flex-col gap-2">
-              <label for="lastName" class="auth-label">Last Name</label>
+              <label for="phoneNumber" class="font-medium text-sm">Phone</label>
               <InputText
-                id="lastName"
-                v-model="form.lastName"
-                placeholder="Doe"
-                class="auth-input w-full py-3 px-4"
-                autocomplete="family-name"
+                id="phoneNumber"
+                v-model="form.phoneNumber"
+                placeholder="+1 555 0123"
+                class="w-full"
+                autocomplete="tel"
                 required
               />
             </div>
-          </div>
 
-          <div class="flex flex-col gap-2">
-            <label for="email" class="auth-label">Email</label>
-            <InputText
-              id="email"
-              v-model="form.email"
-              type="email"
-              placeholder="operator@autonexo.com"
-              class="auth-input w-full py-3 px-4"
-              autocomplete="email"
-              required
-            />
-          </div>
+            <div class="flex flex-col gap-2">
+              <label for="password" class="font-medium text-sm">Password</label>
+              <InputText
+                id="password"
+                v-model="form.password"
+                type="password"
+                placeholder="••••••••"
+                class="w-full"
+                autocomplete="new-password"
+                required
+              />
+            </div>
 
-          <div class="flex flex-col gap-2">
-            <label for="phoneNumber" class="auth-label">Phone</label>
-            <InputText
-              id="phoneNumber"
-              v-model="form.phoneNumber"
-              placeholder="+1 555 0123"
-              class="auth-input w-full py-3 px-4"
-              autocomplete="tel"
-              required
-            />
-          </div>
+            <div class="flex flex-col gap-2">
+              <label class="font-medium text-sm">Account Type</label>
+              <SelectButton
+                v-model="form.requestedRole"
+                :options="roleOptions"
+                optionLabel="label"
+                optionValue="value"
+                class="w-full"
+                aria-label="Select account type"
+              />
+            </div>
 
-          <div class="flex flex-col gap-2">
-            <label for="password" class="auth-label">Password</label>
-            <InputText
-              id="password"
-              v-model="form.password"
-              type="password"
-              placeholder="••••••••"
-              class="auth-input w-full py-3 px-4"
-              autocomplete="new-password"
-              required
-            />
-          </div>
+            <Divider class="my-2" />
 
-          <div class="flex flex-col gap-2">
-            <label class="auth-label">Account Type</label>
-            <SelectButton
-              v-model="form.requestedRole"
-              :options="roleOptions"
-              optionLabel="label"
-              optionValue="value"
+            <Button
+              type="submit"
+              label="Register"
+              :loading="authStore.loading"
               class="w-full"
-              aria-label="Select account type"
             />
-          </div>
+          </form>
 
-          <div class="auth-divider my-2" />
-
-          <Button
-            type="submit"
-            label="Register"
-            :loading="authStore.loading"
-            class="auth-btn-primary w-full py-3 mt-1"
-          />
-        </form>
-
-        <p class="text-center mt-8 auth-text-muted text-sm">
-          Already registered?
-          <RouterLink to="/login" class="auth-link">Sign in</RouterLink>
-        </p>
-      </div>
+          <p class="text-center mt-6 text-sm">
+            Already registered?
+            <RouterLink to="/login" class="text-[var(--p-primary-color)] hover:underline">
+              Sign in
+            </RouterLink>
+          </p>
+        </template>
+      </Card>
     </div>
   </div>
 </template>
