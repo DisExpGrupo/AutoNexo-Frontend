@@ -2,18 +2,15 @@ import http from '@/lib/apiClient';
 import type { 
   SignInRequest, 
   SignUpRequest, 
-  VerifyEmailRequest, 
-  AuthResponse 
+  AuthResponse,
+  MessageResponse
 } from '../models/auth.model';
 
 const BASE_URL = '/v1/users';
 
 export const authService = {
-  /**
-   * Registra un nuevo usuario (Car Owner o Workshop Owner)
-   */
-  async signUp(data: SignUpRequest): Promise<string> {
-    const response = await http.post<string>(`${BASE_URL}/signup`, data);
+  async signUp(data: SignUpRequest): Promise<MessageResponse> {
+    const response = await http.post<MessageResponse>(`${BASE_URL}/signup`, data);
     return response.data;
   },
 
@@ -25,12 +22,4 @@ export const authService = {
     return response.data;
   },
 
-  /**
-   * Verifica el email usando el token UUID enviado por correo.
-   * Nota: El interceptor adjuntará el Bearer Token automáticamente.
-   */
-  async verifyEmail(data: VerifyEmailRequest): Promise<string> {
-    const response = await http.post<string>(`${BASE_URL}/verify-email`, data);
-    return response.data;
-  }
-};
+  };

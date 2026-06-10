@@ -2,7 +2,9 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/modules/iam/store/auth';
-import { UserRole } from '@/modules/iam/models/auth.model';
+import { UserRole, ErrorCode } from '@/modules/iam/models/auth.model';
+import { parseApiError } from '@/lib/apiError';
+import type { ErrorResponse } from '@/modules/iam/models/auth.model';
 import Button from 'primevue/button';
 import InputText from 'primevue/inputtext';
 import SelectButton from 'primevue/selectbutton';
@@ -31,8 +33,25 @@ async function handleRegister() {
     await authStore.register(form.value);
     toast.add({ severity: 'success', summary: 'Success', detail: 'Account created. Please sign in.', life: 3000 });
     router.push({ name: 'login' });
-  } catch {
-    toast.add({ severity: 'error', summary: 'Error', detail: 'Registration failed. Please try again.', life: 5000 });
+  } catch (err) {
+    const parsed = parseApiError(err) as ErrorResponse;
+    const code = parsed.errorCode || authStore.error;
+
+    if (code === ErrorCode.EMAIL_ALREADY_EXISTS) {
+      toast.add({
+        severity: 'warn',
+        summary: 'Email Already Registered',
+        detail: 'An account with this email already exists. Please sign in instead.',
+        life: 6000,
+      });
+    } else {
+      toast.add({
+        severity: 'error',
+        summary: 'Registration Failed',
+        detail: parsed.message || 'An unexpected error occurred. Please try again.',
+        life: 5000,
+      });
+    }
   }
 }
 </script>

@@ -5,6 +5,31 @@ export enum UserRole {
   ADMIN = 'ADMIN',
 }
 
+export enum ErrorCode {
+  USER_NOT_FOUND = 'USER_NOT_FOUND',
+  INVALID_CREDENTIALS = 'INVALID_CREDENTIALS',
+  EMAIL_ALREADY_EXISTS = 'EMAIL_ALREADY_EXISTS',
+  ACCOUNT_DEACTIVATED = 'ACCOUNT_DEACTIVATED',
+  UNAUTHORIZED = 'UNAUTHORIZED',
+  ACCESS_DENIED = 'ACCESS_DENIED',
+  VALIDATION_ERROR = 'VALIDATION_ERROR',
+  INVALID_TOKEN = 'INVALID_TOKEN',
+  INTERNAL_ERROR = 'INTERNAL_ERROR',
+}
+
+export interface ErrorResponse {
+  timestamp: string
+  status: number
+  error: string
+  errorCode: ErrorCode
+  message: string
+  path: string
+}
+
+export interface MessageResponse {
+  message: string
+}
+
 export interface User {
   id: number;
   email: string;
@@ -41,6 +66,4 @@ export interface SignInRequest {
   password: string;
 }
 
-export interface VerifyEmailRequest {
-  token: string;
-}
+

@@ -1,11 +1,12 @@
 import { defineStore } from 'pinia';
 import { authService } from '../services/auth.service';
+import { parseApiError } from '@/lib/apiError';
 import type {
   AuthResponse,
   SignInRequest,
   SignUpRequest,
   User,
-  VerifyEmailRequest
+  ErrorResponse,
 } from '../models/auth.model';
 
 export const useAuthStore = defineStore('auth', {
@@ -38,8 +39,8 @@ export const useAuthStore = defineStore('auth', {
         localStorage.setItem('user', JSON.stringify(response.user));
         localStorage.setItem('workshopId', JSON.stringify(this.workshopId));
       } catch (err: unknown) {
-        const error = err as any;
-        this.error = error.response?.data?.message || 'Login failed';
+        const parsed = parseApiError(err) as ErrorResponse;
+        this.error = parsed.message || 'Login failed';
         throw err;
       } finally {
         this.loading = false;
@@ -48,21 +49,13 @@ export const useAuthStore = defineStore('auth', {
 
     async register(data: SignUpRequest) {
       this.loading = true;
+      this.error = null;
       try {
         await authService.signUp(data);
-      } finally {
-        this.loading = false;
-      }
-    },
-
-    async verify(data: VerifyEmailRequest) {
-      this.loading = true;
-      try {
-        await authService.verifyEmail(data);
-        if (this.user) {
-          this.user.isVerified = true;
-          localStorage.setItem('user', JSON.stringify(this.user));
-        }
+      } catch (err: unknown) {
+        const parsed = parseApiError(err) as ErrorResponse;
+        this.error = parsed.errorCode;
+        throw err;
       } finally {
         this.loading = false;
       }
