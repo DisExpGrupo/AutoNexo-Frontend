@@ -106,6 +106,13 @@ async function mountView() {
         Select: { template: '<select />', props: ['options'] },
         Calendar: { template: '<input />' },
         Textarea: { template: '<textarea />' },
+        Tabs: { template: '<div><slot /></div>', props: ['value'] },
+        TabList: { template: '<div><slot /></div>' },
+        Tab: { template: '<button @click="$emit(\'click\')"><slot /></button>', props: ['value'] },
+        TabPanels: { template: '<div><slot /></div>' },
+        TabPanel: { template: '<div><slot /></div>', props: ['value'] },
+        Card: { template: '<div><slot /><slot name="content" /></div>' },
+        Tag: { template: '<span>{{ value }}</span>', props: ['value', 'severity'] },
       },
     },
   });
