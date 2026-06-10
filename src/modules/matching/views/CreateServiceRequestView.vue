@@ -6,6 +6,14 @@ import type { Vehicle } from '@/modules/vehicles/services/vehicle.service';
 import { catalogService } from '@/shared/services/catalog.service';
 import type { Service } from '@/shared/models/catalog.model';
 import { serviceRequestService } from '@/modules/matching/services/service-request.service';
+import Card from 'primevue/card';
+import Button from 'primevue/button';
+import Select from 'primevue/select';
+import MultiSelect from 'primevue/multiselect';
+import Textarea from 'primevue/textarea';
+import InputNumber from 'primevue/inputnumber';
+import Message from 'primevue/message';
+import Skeleton from 'primevue/skeleton';
 import Slider from 'primevue/slider';
 import L from 'leaflet';
 
@@ -36,6 +44,10 @@ const errors = ref<Record<string, string>>({});
 let map: L.Map | null = null;
 let marker: L.Marker | null = null;
 
+const vehicleOptions = computed(() =>
+  vehicles.value.map((v) => ({ ...v, label: `${v.model} \u2014 ${v.licensePlate}` }))
+);
+
 const isFormValid = computed(() =>
   selectedVehicleId.value !== null &&
   selectedServiceCodes.value.length > 0 &&
@@ -57,7 +69,7 @@ onMounted(async () => {
     errors.value.form = 'Failed to load form data. Please refresh.';
   } finally {
     loading.value = false;
-    
+
     await nextTick();
     initMap();
   }
@@ -159,676 +171,197 @@ async function handleSubmit() {
     </div>
 
     <template v-if="loading">
-      <div class="sr-loading">
-        <p class="sr-loading-text">Loading...</p>
+      <div class="flex flex-col gap-4">
+        <Skeleton height="20rem" />
+        <Skeleton height="24rem" />
       </div>
     </template>
 
     <template v-else-if="submitted">
-      <div class="sr-success-state">
-        <div class="sr-success-icon">
-          <svg width="48" height="48" viewBox="0 0 48 48" fill="none" aria-hidden="true">
-            <circle cx="24" cy="24" r="20" stroke="#1B7A5A" stroke-width="3"/>
-            <path d="M16 24l6 6 12-12" stroke="#1B7A5A" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </div>
-        <h2 class="sr-success-title">Request Sent</h2>
-        <p class="sr-success-text">Your service request has been submitted. Workshops will respond shortly.</p>
-        <button class="sr-btn-primary" @click="router.push({ name: 'dashboard' })">
-          Back to Dashboard
-        </button>
-      </div>
+      <Card class="max-w-[520px] mt-8">
+        <template #content>
+          <div class="flex flex-col items-center text-center gap-6">
+            <i class="pi pi-check-circle text-5xl text-[var(--p-primary-color)]" />
+            <div>
+              <h2 class="font-mono text-2xl font-bold text-white mb-3">Request Sent</h2>
+              <p class="text-[var(--p-text-muted-color)]">
+                Your service request has been submitted. Workshops will respond shortly.
+              </p>
+            </div>
+            <Button label="Back to Dashboard" @click="router.push({ name: 'dashboard' })" />
+          </div>
+        </template>
+      </Card>
     </template>
 
     <form v-else @submit.prevent="handleSubmit" aria-label="Service request form" novalidate>
-      <div v-if="errors.form" class="sr-form-error" role="alert">
+      <Message v-if="errors.form" severity="error" class="mb-6">
         {{ errors.form }}
-      </div>
+      </Message>
 
-      <div class="sr-form-card">
-        <div class="sr-step-header">
-          <span class="sr-step-badge">01</span>
-          <span class="sr-step-label">Vehicle & Services</span>
-        </div>
+      <Card class="mb-5">
+        <template #content>
+          <div class="flex items-center gap-3 mb-7">
+            <span class="font-mono text-xs font-bold text-[var(--p-primary-color)] bg-[var(--p-primary-color)]/15 px-2.5 py-1 rounded tracking-wider">
+              01
+            </span>
+            <span class="font-mono text-sm font-bold text-white uppercase tracking-wider">
+              Vehicle & Services
+            </span>
+          </div>
 
-        <div class="sr-form-group">
-          <label for="vehicle" class="sr-form-label">
-            Vehicle <span class="sr-form-required" aria-hidden="true">*</span>
-          </label>
-          <div class="sr-select-wrapper">
-            <select
+          <div class="flex flex-col gap-1.5 mb-5">
+            <label for="vehicle" class="font-mono text-[0.75rem] font-bold uppercase tracking-wider text-[var(--p-text-muted-color)]">
+              Vehicle <span class="text-[var(--p-primary-color)]" aria-hidden="true">*</span>
+            </label>
+            <Select
               id="vehicle"
               v-model="selectedVehicleId"
-              class="sr-select"
+              :options="vehicleOptions"
+              option-label="label"
+              option-value="id"
+              placeholder="Select your vehicle"
+              class="w-full"
               :aria-invalid="!!errors.vehicle"
-            >
-              <option :value="null" disabled>Select your vehicle</option>
-              <option v-for="v in vehicles" :key="v.id" :value="v.id">
-                {{ v.model }} — {{ v.licensePlate }}
-              </option>
-            </select>
+            />
+            <span v-if="errors.vehicle" class="text-xs text-[#800C1F]" role="alert">{{ errors.vehicle }}</span>
           </div>
-          <span v-if="errors.vehicle" class="sr-form-field-error" role="alert">{{ errors.vehicle }}</span>
-        </div>
 
-        <div class="sr-form-group">
-          <span class="sr-form-label">
-            Services Needed <span class="sr-form-required" aria-hidden="true">*</span>
-          </span>
-          <div class="services-grid" role="group" aria-label="Select services">
-            <label
-              v-for="svc in services"
-              :key="svc.code"
-              class="service-checkbox-item"
-              :class="{ 'service-checkbox-item--selected': selectedServiceCodes.includes(svc.code) }"
-            >
-              <input
-                type="checkbox"
-                :value="svc.code"
-                v-model="selectedServiceCodes"
-                class="service-checkbox-input"
-              />
-              <span class="service-checkbox-box" aria-hidden="true">
-                <svg v-if="selectedServiceCodes.includes(svc.code)" width="12" height="12" viewBox="0 0 12 12" fill="none">
-                  <path d="M2 6l3 3 5-5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-              </span>
-              <span class="service-checkbox-content">
-                <span class="service-checkbox-name">{{ svc.displayName }}</span>
-                <span class="service-checkbox-category">{{ svc.categoryDisplayName }}</span>
-              </span>
+          <div class="flex flex-col gap-1.5 mb-5">
+            <span class="font-mono text-[0.75rem] font-bold uppercase tracking-wider text-[var(--p-text-muted-color)]">
+              Services Needed <span class="text-[var(--p-primary-color)]" aria-hidden="true">*</span>
+            </span>
+            <MultiSelect
+              v-model="selectedServiceCodes"
+              :options="services"
+              option-label="displayName"
+              option-value="code"
+              placeholder="Select services"
+              class="w-full"
+              :aria-invalid="!!errors.services"
+              display="chip"
+            />
+            <span v-if="errors.services" class="text-xs text-[#800C1F]" role="alert">{{ errors.services }}</span>
+            <p v-else class="text-xs text-[#5E7795]">
+              {{ selectedServiceCodes.length }} service{{ selectedServiceCodes.length !== 1 ? 's' : '' }} selected
+            </p>
+          </div>
+
+          <div class="flex flex-col gap-1.5">
+            <label for="description" class="font-mono text-[0.75rem] font-bold uppercase tracking-wider text-[var(--p-text-muted-color)]">
+              Description <span class="text-[var(--p-primary-color)]" aria-hidden="true">*</span>
             </label>
-          </div>
-          <span v-if="errors.services" class="sr-form-field-error" role="alert">{{ errors.services }}</span>
-          <p v-else class="sr-form-hint">{{ selectedServiceCodes.length }} service{{ selectedServiceCodes.length !== 1 ? 's' : '' }} selected</p>
-        </div>
-
-        <div class="sr-form-group">
-          <label for="description" class="sr-form-label">
-            Description <span class="sr-form-required" aria-hidden="true">*</span>
-          </label>
-          <textarea
-            id="description"
-            v-model="form.description"
-            class="sr-textarea"
-            placeholder="Describe the issue or service needed in detail..."
-            rows="4"
-            :aria-invalid="!!errors.description"
-            :aria-describedby="errors.description ? 'desc-error' : 'desc-hint'"
-          />
-          <span v-if="errors.description" id="desc-error" class="sr-form-field-error" role="alert">{{ errors.description }}</span>
-          <span v-else id="desc-hint" class="sr-form-hint">Minimum 10 characters</span>
-        </div>
-      </div>
-
-      <div class="sr-form-card">
-        <div class="sr-step-header">
-          <span class="sr-step-badge">02</span>
-          <span class="sr-step-label">Location</span>
-        </div>
-
-        <div class="sr-form-grid">
-          <div class="sr-form-group">
-            <label for="latitude" class="sr-form-label">Latitude</label>
-            <input
-              id="latitude"
-              v-model="form.latitude"
-              type="number"
-              step="any"
-              class="sr-input"
-              placeholder="—"
-              aria-readonly="true"
+            <Textarea
+              id="description"
+              v-model="form.description"
+              placeholder="Describe the issue or service needed in detail..."
+              rows="4"
+              class="w-full"
+              :aria-invalid="!!errors.description"
+              :aria-describedby="errors.description ? 'desc-error' : 'desc-hint'"
             />
+            <span v-if="errors.description" id="desc-error" class="text-xs text-[#800C1F]" role="alert">{{ errors.description }}</span>
+            <span v-else id="desc-hint" class="text-xs text-[#5E7795]">Minimum 10 characters</span>
+          </div>
+        </template>
+      </Card>
+
+      <Card class="mb-5">
+        <template #content>
+          <div class="flex items-center gap-3 mb-7">
+            <span class="font-mono text-xs font-bold text-[var(--p-primary-color)] bg-[var(--p-primary-color)]/15 px-2.5 py-1 rounded tracking-wider">
+              02
+            </span>
+            <span class="font-mono text-sm font-bold text-white uppercase tracking-wider">
+              Location
+            </span>
           </div>
 
-          <div class="sr-form-group">
-            <label for="longitude" class="sr-form-label">Longitude</label>
-            <input
-              id="longitude"
-              v-model="form.longitude"
-              type="number"
-              step="any"
-              class="sr-input"
-              placeholder="—"
-              aria-readonly="true"
-            />
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div class="flex flex-col gap-1.5">
+              <label for="latitude" class="font-mono text-[0.75rem] font-bold uppercase tracking-wider text-[var(--p-text-muted-color)]">
+                Latitude
+              </label>
+              <InputNumber
+                id="latitude"
+                v-model="form.latitude"
+                :minFractionDigits="4"
+                :maxFractionDigits="8"
+                placeholder="\u2014"
+                class="w-full"
+                aria-readonly="true"
+              />
+            </div>
+
+            <div class="flex flex-col gap-1.5">
+              <label for="longitude" class="font-mono text-[0.75rem] font-bold uppercase tracking-wider text-[var(--p-text-muted-color)]">
+                Longitude
+              </label>
+              <InputNumber
+                id="longitude"
+                v-model="form.longitude"
+                :minFractionDigits="4"
+                :maxFractionDigits="8"
+                placeholder="\u2014"
+                class="w-full"
+                aria-readonly="true"
+              />
+            </div>
           </div>
-        </div>
 
-        <div class="sr-location-action">
-          <button
-            type="button"
-            class="sr-btn-location"
-            :disabled="locating"
-            @click="getLocation"
-          >
-            <svg v-if="!locating" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-              <circle cx="8" cy="8" r="3" stroke="currentColor" stroke-width="1.5"/>
-              <path d="M8 1v2M8 13v2M1 8h2M13 8h2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-            </svg>
-            <span v-if="locating" class="sr-btn-spinner-sm" aria-hidden="true"></span>
-            {{ locating ? 'Locating...' : 'Get My Location' }}
-          </button>
-          <span v-if="errors.location" class="sr-form-field-error" role="alert">{{ errors.location }}</span>
-        </div>
-
-        <div id="service-request-map" class="sr-map" aria-label="Location map"></div>
-        <p class="sr-map-hint">Drag the marker to adjust your exact location</p>
-
-        <div class="sr-form-group sr-form-group--inline sr-radius-group">
-          <label for="searchRadius" class="sr-form-label">
-            Search Radius (km)
-          </label>
-          <div class="sr-slider-wrapper">
-            <Slider
-              v-model="form.searchRadiusKm"
-              :min="1"
-              :max="50"
-              class="sr-slider"
+          <div class="flex items-center gap-3 mb-4">
+            <Button
+              type="button"
+              icon="pi pi-map-marker"
+              label="Get My Location"
+              severity="secondary"
+              outlined
+              :loading="locating"
+              @click="getLocation"
             />
-            <input
-              id="searchRadius"
-              v-model="form.searchRadiusKm"
-              type="number"
-              min="1"
-              max="50"
-              class="sr-input sr-input--sm"
-              aria-label="Search radius in kilometers"
-            />
+            <span v-if="errors.location" class="text-sm text-[#800C1F]" role="alert">{{ errors.location }}</span>
           </div>
-        </div>
-      </div>
 
-      <div class="sr-form-actions">
-        <button
+          <div id="service-request-map" class="h-[300px] w-full rounded-xl overflow-hidden border border-[rgba(94,119,149,0.15)] mb-2" aria-label="Location map" />
+          <p class="text-xs text-[#5E7795] mb-6">Drag the marker to adjust your exact location</p>
+
+          <div class="flex flex-col md:flex-row md:items-center gap-4 mt-5">
+            <label for="searchRadius" class="font-mono text-[0.75rem] font-bold uppercase tracking-wider text-[var(--p-text-muted-color)]">
+              Search Radius (km)
+            </label>
+            <div class="flex items-center gap-4 flex-1">
+              <Slider v-model="form.searchRadiusKm" :min="1" :max="50" class="flex-1" />
+              <InputNumber
+                id="searchRadius"
+                v-model="form.searchRadiusKm"
+                :min="1"
+                :max="50"
+                class="w-20 text-center"
+                aria-label="Search radius in kilometers"
+              />
+            </div>
+          </div>
+        </template>
+      </Card>
+
+      <div class="flex justify-end gap-3 pt-6 border-t border-[rgba(94,119,149,0.15)]">
+        <Button
           type="button"
-          class="sr-btn-secondary"
+          label="Cancel"
+          severity="secondary"
+          outlined
           @click="router.push({ name: 'dashboard' })"
-        >
-          Cancel
-        </button>
-        <button
+        />
+        <Button
           type="submit"
-          class="sr-btn-primary"
-          :disabled="!isFormValid || submitting"
-          :aria-busy="submitting"
-        >
-          <span v-if="submitting" class="sr-btn-spinner" aria-hidden="true"></span>
-          {{ submitting ? 'Sending...' : 'Send Request' }}
-        </button>
+          label="Send Request"
+          :loading="submitting"
+          :disabled="!isFormValid"
+        />
       </div>
     </form>
   </div>
 </template>
-
-<style scoped>
-.sr-loading {
-  display: flex;
-  justify-content: center;
-  padding: 64px;
-}
-
-.sr-loading-text {
-  font-family: 'Inter', sans-serif;
-  color: #799AB7;
-}
-
-.sr-success-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  padding: 64px 32px;
-  background: #1a2630;
-  border: 1px solid rgba(94, 119, 149, 0.15);
-  border-radius: 16px;
-  max-width: 520px;
-  margin-top: 32px;
-}
-
-.sr-success-icon {
-  margin-bottom: 24px;
-}
-
-.sr-success-title {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #F8FAFC;
-  margin: 0 0 12px;
-}
-
-.sr-success-text {
-  font-family: 'Inter', sans-serif;
-  font-size: 1rem;
-  color: #799AB7;
-  margin: 0 0 32px;
-  line-height: 1.6;
-}
-
-.sr-form-error {
-  background: rgba(128, 12, 31, 0.15);
-  border: 1px solid #800C1F;
-  border-radius: 8px;
-  padding: 12px 16px;
-  color: #F8FAFC;
-  font-family: 'Inter', sans-serif;
-  font-size: 0.875rem;
-  margin-bottom: 24px;
-}
-
-.sr-form-card {
-  background: #1a2630;
-  border: 1px solid rgba(94, 119, 149, 0.15);
-  border-radius: 16px;
-  padding: 32px;
-  margin-bottom: 20px;
-}
-
-.sr-step-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 28px;
-}
-
-.sr-step-badge {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: #1B7A5A;
-  background: rgba(27, 122, 90, 0.15);
-  padding: 4px 10px;
-  border-radius: 4px;
-  letter-spacing: 0.05em;
-}
-
-.sr-step-label {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 0.875rem;
-  font-weight: 700;
-  color: #F8FAFC;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-}
-
-.sr-form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-bottom: 20px;
-}
-
-.sr-form-group:last-child {
-  margin-bottom: 0;
-}
-
-.sr-form-group--inline {
-  flex-direction: row;
-  align-items: center;
-  gap: 16px;
-}
-
-.sr-form-label {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #799AB7;
-}
-
-.sr-form-required {
-  color: #1B7A5A;
-}
-
-.sr-form-hint {
-  font-family: 'Inter', sans-serif;
-  font-size: 0.75rem;
-  color: #5E7795;
-  margin-top: 4px;
-}
-
-.sr-form-field-error {
-  font-family: 'Inter', sans-serif;
-  font-size: 0.75rem;
-  color: #800C1F;
-}
-
-.sr-input {
-  background: #0f1920;
-  border: 1px solid #5E7795;
-  border-radius: 8px;
-  color: #F8FAFC;
-  padding: 12px 14px;
-  font-family: 'Inter', sans-serif;
-  font-size: 0.9375rem;
-  width: 100%;
-  box-sizing: border-box;
-  transition: border-color 0.15s, box-shadow 0.15s;
-}
-
-.sr-input::placeholder {
-  color: #5E7795;
-}
-
-.sr-input:focus {
-  outline: none;
-  border-color: #1B7A5A;
-  box-shadow: 0 0 0 3px rgba(27, 122, 90, 0.2);
-}
-
-.sr-input--disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.sr-input--sm {
-  max-width: 80px;
-  padding: 8px 12px;
-  font-size: 0.875rem;
-  text-align: center;
-}
-
-.sr-select-wrapper {
-  position: relative;
-}
-
-.sr-select {
-  appearance: none;
-  background: #0f1920;
-  border: 1px solid #5E7795;
-  border-radius: 8px;
-  color: #F8FAFC;
-  padding: 12px 40px 12px 14px;
-  font-family: 'Inter', sans-serif;
-  font-size: 0.9375rem;
-  width: 100%;
-  cursor: pointer;
-  transition: border-color 0.15s, box-shadow 0.15s;
-}
-
-.sr-select:focus {
-  outline: none;
-  border-color: #1B7A5A;
-  box-shadow: 0 0 0 3px rgba(27, 122, 90, 0.2);
-}
-
-.sr-select option {
-  background: #1a2630;
-  color: #F8FAFC;
-}
-
-.services-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 10px;
-}
-
-.service-checkbox-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  background: #0f1920;
-  border: 1px solid rgba(94, 119, 149, 0.2);
-  border-radius: 10px;
-  padding: 12px 14px;
-  cursor: pointer;
-  transition: border-color 0.15s, background 0.15s;
-}
-
-.service-checkbox-item:hover {
-  border-color: rgba(27, 122, 90, 0.4);
-  background: rgba(27, 122, 90, 0.05);
-}
-
-.service-checkbox-item--selected {
-  border-color: #1B7A5A;
-  background: rgba(27, 122, 90, 0.08);
-}
-
-.service-checkbox-input {
-  position: absolute;
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-
-.service-checkbox-box {
-  width: 20px;
-  height: 20px;
-  flex-shrink: 0;
-  border: 2px solid #5E7795;
-  border-radius: 5px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: border-color 0.15s, background 0.15s;
-}
-
-.service-checkbox-item--selected .service-checkbox-box {
-  border-color: #1B7A5A;
-  background: #1B7A5A;
-}
-
-.service-checkbox-content {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-
-.service-checkbox-name {
-  font-family: 'Inter', sans-serif;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #F8FAFC;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.service-checkbox-category {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 0.65rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: #799AB7;
-}
-
-.sr-textarea {
-  background: #0f1920;
-  border: 1px solid #5E7795;
-  border-radius: 8px;
-  color: #F8FAFC;
-  padding: 12px 14px;
-  font-family: 'Inter', sans-serif;
-  font-size: 0.9375rem;
-  width: 100%;
-  box-sizing: border-box;
-  resize: vertical;
-  min-height: 100px;
-  transition: border-color 0.15s, box-shadow 0.15s;
-}
-
-.sr-textarea::placeholder {
-  color: #5E7795;
-}
-
-.sr-textarea:focus {
-  outline: none;
-  border-color: #1B7A5A;
-  box-shadow: 0 0 0 3px rgba(27, 122, 90, 0.2);
-}
-
-.sr-form-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  margin-bottom: 16px;
-}
-
-.sr-location-action {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
-}
-
-.sr-btn-location {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: rgba(27, 122, 90, 0.15);
-  border: 1px solid #1B7A5A;
-  border-radius: 8px;
-  font-family: 'IBM Plex Mono', monospace;
-  font-weight: 700;
-  font-size: 0.8rem;
-  padding: 8px 16px;
-  color: #1B7A5A;
-  cursor: pointer;
-  transition: background 0.15s;
-  letter-spacing: 0.03em;
-}
-
-.sr-btn-location:hover:not(:disabled) {
-  background: rgba(27, 122, 90, 0.25);
-}
-
-.sr-btn-location:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.sr-map {
-  height: 300px;
-  width: 100%;
-  border-radius: 12px;
-  overflow: hidden;
-  border: 1px solid rgba(94, 119, 149, 0.15);
-  margin-bottom: 8px;
-}
-
-.sr-map-hint {
-  font-family: 'Inter', sans-serif;
-  font-size: 0.75rem;
-  color: #5E7795;
-  margin-bottom: 24px;
-}
-
-.sr-radius-group {
-  margin-top: 20px;
-}
-
-.sr-slider-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  flex: 1;
-}
-
-.sr-slider {
-  flex: 1;
-}
-
-.sr-form-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  padding-top: 24px;
-  border-top: 1px solid rgba(94, 119, 149, 0.15);
-}
-
-.sr-btn-primary {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: #1B7A5A;
-  border: none;
-  border-radius: 8px;
-  font-family: 'IBM Plex Mono', monospace;
-  font-weight: 700;
-  font-size: 0.875rem;
-  padding: 12px 28px;
-  color: #F8FAFC;
-  cursor: pointer;
-  transition: background 0.15s;
-  letter-spacing: 0.03em;
-}
-
-.sr-btn-primary:hover:not(:disabled) {
-  background: #165c48;
-}
-
-.sr-btn-primary:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.sr-btn-secondary {
-  background: transparent;
-  border: 1px solid #5E7795;
-  border-radius: 8px;
-  font-family: 'IBM Plex Mono', monospace;
-  font-weight: 700;
-  font-size: 0.875rem;
-  padding: 12px 28px;
-  color: #799AB7;
-  cursor: pointer;
-  transition: border-color 0.15s, background 0.15s;
-  letter-spacing: 0.03em;
-}
-
-.sr-btn-secondary:hover {
-  border-color: #799AB7;
-  background: rgba(94, 119, 149, 0.1);
-}
-
-.sr-btn-spinner {
-  width: 14px;
-  height: 14px;
-  border: 2px solid rgba(248, 250, 252, 0.3);
-  border-top-color: #F8FAFC;
-  border-radius: 50%;
-  animation: spin 0.7s linear infinite;
-}
-
-.sr-btn-spinner-sm {
-  width: 14px;
-  height: 14px;
-  border: 2px solid rgba(27, 122, 90, 0.3);
-  border-top-color: #1B7A5A;
-  border-radius: 50%;
-  animation: spin 0.7s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-@media (max-width: 640px) {
-  .sr-form-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .sr-form-card {
-    padding: 24px 20px;
-  }
-
-  .sr-form-group--inline {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .sr-slider-wrapper {
-    flex-direction: column;
-    align-items: flex-start;
-    width: 100%;
-  }
-}
-</style>
 
 <style>
 .leaflet-container {

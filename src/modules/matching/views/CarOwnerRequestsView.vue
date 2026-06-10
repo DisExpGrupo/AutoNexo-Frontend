@@ -8,17 +8,25 @@ import type { Vehicle } from '@/modules/vehicles/services/vehicle.service';
 import { offerService } from '@/modules/matching/services/offer.service';
 import type { Offer } from '@/modules/matching/services/offer.service';
 import Button from 'primevue/button';
+import Card from 'primevue/card';
+import Tag from 'primevue/tag';
+import Tabs from 'primevue/tabs';
+import TabList from 'primevue/tablist';
+import Tab from 'primevue/tab';
+import TabPanels from 'primevue/tabpanels';
+import TabPanel from 'primevue/tabpanel';
+import Skeleton from 'primevue/skeleton';
+import Message from 'primevue/message';
 
 const router = useRouter();
 
-const activeTab = ref<'active' | 'history'>('active');
+const activeTab = ref(0);
 const requests = shallowRef<ServiceRequest[]>([]);
 const offers = shallowRef<Offer[]>([]);
 const vehicles = shallowRef<Vehicle[]>([]);
 const loading = ref(true);
 
 const ACTIVE_STATUSES: ServiceRequestStatus[] = ['PENDING', 'COMPLETED'];
-
 const HISTORY_STATUSES: ServiceRequestStatus[] = ['REJECTED', 'CANCELLED'];
 
 const activeRequests = computed(() =>
@@ -41,18 +49,11 @@ function getPendingOffersCount(requestId: number): number {
   return offers.value.filter((o) => o.serviceRequestId === requestId && o.status === 'PENDING').length;
 }
 
-const REQUEST_STATUS_LABELS: Record<ServiceRequestStatus, string> = {
-  PENDING: 'Pending',
-  COMPLETED: 'Completed',
-  REJECTED: 'Rejected',
-  CANCELLED: 'Cancelled',
-};
-
-const REQUEST_STATUS_CLASS: Record<ServiceRequestStatus, string> = {
-  PENDING: 'status-pending',
-  COMPLETED: 'status-completed',
-  REJECTED: 'status-rejected',
-  CANCELLED: 'status-cancelled',
+const STATUS_TAG: Record<ServiceRequestStatus, { severity: string; value: string }> = {
+  PENDING: { severity: 'warn', value: 'Pending' },
+  COMPLETED: { severity: 'success', value: 'Completed' },
+  REJECTED: { severity: 'danger', value: 'Rejected' },
+  CANCELLED: { severity: 'secondary', value: 'Cancelled' },
 };
 
 function formatPrice(amount: number, currency: string): string {
@@ -71,6 +72,7 @@ onMounted(async () => {
     offers.value = allOffers;
     vehicles.value = vehs;
   } catch {
+    // silently fail
   } finally {
     loading.value = false;
   }
@@ -78,447 +80,161 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="cor-hub">
-    <div class="cor-hub-header">
-      <h1 class="cor-hub-title">Service Requests</h1>
-      <p class="cor-hub-subtitle">Track your active and past service requests.</p>
+  <div class="an-dashboard max-w-3xl">
+    <div class="an-dashboard-header">
+      <h1 class="an-dashboard-title">Service Requests</h1>
+      <p class="an-dashboard-subtitle">Track your active and past service requests.</p>
     </div>
 
-    <div class="cor-tabs">
-      <div class="tab-list" role="tablist">
-        <button
-          class="tab-btn"
-          :class="{ 'tab-btn--active': activeTab === 'active' }"
-          role="tab"
-          :aria-selected="activeTab === 'active'"
-          @click="activeTab = 'active'"
-        >
-          Active
-        </button>
-        <button
-          class="tab-btn"
-          :class="{ 'tab-btn--active': activeTab === 'history' }"
-          role="tab"
-          :aria-selected="activeTab === 'history'"
-          @click="activeTab = 'history'"
-        >
-          History
-        </button>
-      </div>
+    <Tabs v-model:value="activeTab">
+      <TabList>
+        <Tab value="0">Active</Tab>
+        <Tab value="1">History</Tab>
+      </TabList>
+      <TabPanels>
+        <TabPanel value="0">
+          <div v-if="loading" class="flex flex-col gap-4">
+            <Skeleton v-for="i in 3" :key="i" height="12rem" />
+          </div>
 
-      <template v-if="activeTab === 'active'">
-        <div class="tab-panel" role="tabpanel">
-          <template v-if="loading">
-            <div class="cor-loading">
-              <p class="cor-loading-text">Loading your requests...</p>
-            </div>
-          </template>
+          <div v-else-if="activeRequests.length === 0" class="py-16 flex flex-col items-center gap-3">
+            <i class="pi pi-inbox text-4xl text-[var(--p-text-muted-color)]" />
+            <p class="font-mono font-bold text-[var(--p-text-muted-color)]">No active service requests.</p>
+            <p class="text-sm text-[var(--p-text-muted-color)]">When you create a service request, it will appear here.</p>
+          </div>
 
-          <template v-else-if="activeRequests.length === 0">
-            <div class="cor-empty">
-              <svg width="48" height="48" viewBox="0 0 48 48" fill="none" aria-hidden="true">
-                <path d="M14 24h20M24 14v20" stroke="#799AB7" stroke-width="2" stroke-linecap="round"/>
-                <circle cx="24" cy="24" r="18" stroke="#799AB7" stroke-width="2"/>
-              </svg>
-              <p class="cor-empty-text">No active service requests.</p>
-              <p class="cor-empty-hint">When you create a service request, it will appear here.</p>
-            </div>
-          </template>
-
-          <template v-else>
-            <div class="requests-grid">
-              <article
-                v-for="req in activeRequests"
-                :key="req.id"
-                class="request-card"
-              >
-                <div class="req-card-header">
-                  <div class="req-vehicle">
-                    <span class="req-vehicle-model">{{ getVehicle(req.vehicleId)?.model ?? 'Unknown Vehicle' }}</span>
-                    <span class="req-vehicle-plate">{{ getVehicle(req.vehicleId)?.licensePlate ?? '—' }}</span>
-                  </div>
-                  <span :class="['status-badge', REQUEST_STATUS_CLASS[req.status]]">
-                    {{ REQUEST_STATUS_LABELS[req.status] }}
-                  </span>
-                </div>
-
-                <p class="req-description">{{ req.description }}</p>
-
-                <div class="req-services">
-                  <span v-for="svc in req.requestedServices" :key="svc" class="req-service-tag">{{ svc }}</span>
-                </div>
-
-                <template v-if="getAcceptedOffer(req.id)">
-                  <div class="req-workshop-info">
-                    <div class="req-workshop-detail">
-                      <span class="req-workshop-label">Workshop</span>
-                      <span class="req-workshop-value">#{{ getAcceptedOffer(req.id)!.workshopId }}</span>
-                    </div>
-                    <div class="req-workshop-detail">
-                      <span class="req-workshop-label">Agreed Price</span>
-                      <span class="req-workshop-value req-workshop-price">
-                        {{ formatPrice(getAcceptedOffer(req.id)!.proposedPriceAmount, getAcceptedOffer(req.id)!.currency) }}
+          <div v-else class="flex flex-col gap-4">
+            <Card v-for="req in activeRequests" :key="req.id">
+              <template #content>
+                <div class="flex flex-col gap-3">
+                  <div class="flex items-start justify-between">
+                    <div class="flex flex-col gap-0.5">
+                      <span class="text-sm font-semibold text-white">
+                        {{ getVehicle(req.vehicleId)?.model ?? 'Unknown Vehicle' }}
+                      </span>
+                      <span class="text-[0.8rem] font-mono font-bold text-[var(--p-primary-color)] tracking-wider">
+                        {{ getVehicle(req.vehicleId)?.licensePlate ?? '—' }}
                       </span>
                     </div>
+                    <Tag
+                      :value="STATUS_TAG[req.status].value"
+                      :severity="STATUS_TAG[req.status].severity"
+                      class="text-[0.65rem] font-bold uppercase tracking-wider"
+                    />
                   </div>
-                </template>
 
-                <template v-else-if="getPendingOffersCount(req.id) > 0">
-                  <div class="req-pending-count">
-                    <span>{{ getPendingOffersCount(req.id) }} offer{{ getPendingOffersCount(req.id) > 1 ? 's' : '' }} waiting</span>
+                  <p class="text-sm text-white leading-relaxed">{{ req.description }}</p>
+
+                  <div class="flex flex-wrap gap-1.5">
+                    <Tag
+                      v-for="svc in req.requestedServices"
+                      :key="svc"
+                      :value="svc"
+                      severity="secondary"
+                      class="text-[0.65rem]"
+                    />
                   </div>
-                </template>
 
-                <div class="req-card-footer">
-                  <span class="req-date">Created {{ new Date(req.createdAt).toLocaleDateString() }}</span>
-                  <Button
-                    label="View Details"
-                    severity="secondary"
-                    outlined
-                    size="small"
-                    @click="router.push({ name: 'service-request-detail', params: { id: req.id } })"
-                  />
-                </div>
-              </article>
-            </div>
-          </template>
-        </div>
-      </template>
+                  <template v-if="getAcceptedOffer(req.id)">
+                    <div class="flex gap-6 p-3 rounded-lg border border-[var(--p-primary-color)]/15 bg-[var(--p-primary-color)]/5">
+                      <div class="flex flex-col gap-0.5">
+                        <span class="text-[0.6rem] font-mono font-bold uppercase tracking-wider text-[var(--p-text-muted-color)]">Workshop</span>
+                        <span class="text-sm text-white">#{{ getAcceptedOffer(req.id)!.workshopId }}</span>
+                      </div>
+                      <div class="flex flex-col gap-0.5">
+                        <span class="text-[0.6rem] font-mono font-bold uppercase tracking-wider text-[var(--p-text-muted-color)]">Agreed Price</span>
+                        <span class="text-sm font-mono font-bold text-[var(--p-primary-color)]">
+                          {{ formatPrice(getAcceptedOffer(req.id)!.proposedPriceAmount, getAcceptedOffer(req.id)!.currency) }}
+                        </span>
+                      </div>
+                    </div>
+                  </template>
 
-      <template v-if="activeTab === 'history'">
-        <div class="tab-panel" role="tabpanel">
-          <template v-if="loading">
-            <div class="cor-loading">
-              <p class="cor-loading-text">Loading...</p>
-            </div>
-          </template>
+                  <template v-else-if="getPendingOffersCount(req.id) > 0">
+                    <Message severity="info" :closable="false" class="text-sm">
+                      {{ getPendingOffersCount(req.id) }} offer{{ getPendingOffersCount(req.id) > 1 ? 's' : '' }} waiting
+                    </Message>
+                  </template>
 
-          <template v-else-if="historyRequests.length === 0">
-            <div class="cor-empty">
-              <svg width="48" height="48" viewBox="0 0 48 48" fill="none" aria-hidden="true">
-                <circle cx="24" cy="24" r="20" stroke="#799AB7" stroke-width="2"/>
-                <path d="M24 16v8M24 28h.01" stroke="#799AB7" stroke-width="2.5" stroke-linecap="round"/>
-              </svg>
-              <p class="cor-empty-text">No history yet.</p>
-              <p class="cor-empty-hint">Completed and cancelled requests will appear here.</p>
-            </div>
-          </template>
-
-          <template v-else>
-            <div class="requests-grid">
-              <article
-                v-for="req in historyRequests"
-                :key="req.id"
-                class="request-card"
-              >
-                <div class="req-card-header">
-                  <div class="req-vehicle">
-                    <span class="req-vehicle-model">{{ getVehicle(req.vehicleId)?.model ?? 'Unknown Vehicle' }}</span>
-                    <span class="req-vehicle-plate">{{ getVehicle(req.vehicleId)?.licensePlate ?? '—' }}</span>
+                  <div class="flex items-center justify-between pt-3 border-t border-[rgba(94,119,149,0.1)]">
+                    <span class="text-[0.7rem] font-mono text-[#5E7795]">
+                      Created {{ new Date(req.createdAt).toLocaleDateString() }}
+                    </span>
+                    <Button
+                      label="View Details"
+                      severity="secondary"
+                      outlined
+                      size="small"
+                      @click="router.push({ name: 'service-request-detail', params: { id: req.id } })"
+                    />
                   </div>
-                  <span :class="['status-badge', REQUEST_STATUS_CLASS[req.status]]">
-                    {{ REQUEST_STATUS_LABELS[req.status] }}
-                  </span>
                 </div>
+              </template>
+            </Card>
+          </div>
+        </TabPanel>
 
-                <p class="req-description">{{ req.description }}</p>
+        <TabPanel value="1">
+          <div v-if="loading" class="flex flex-col gap-4">
+            <Skeleton v-for="i in 3" :key="i" height="12rem" />
+          </div>
 
-                <div class="req-services">
-                  <span v-for="svc in req.requestedServices" :key="svc" class="req-service-tag">{{ svc }}</span>
+          <div v-else-if="historyRequests.length === 0" class="py-16 flex flex-col items-center gap-3">
+            <i class="pi pi-history text-4xl text-[var(--p-text-muted-color)]" />
+            <p class="font-mono font-bold text-[var(--p-text-muted-color)]">No history yet.</p>
+            <p class="text-sm text-[var(--p-text-muted-color)]">Completed and cancelled requests will appear here.</p>
+          </div>
+
+          <div v-else class="flex flex-col gap-4">
+            <Card v-for="req in historyRequests" :key="req.id">
+              <template #content>
+                <div class="flex flex-col gap-3">
+                  <div class="flex items-start justify-between">
+                    <div class="flex flex-col gap-0.5">
+                      <span class="text-sm font-semibold text-white">
+                        {{ getVehicle(req.vehicleId)?.model ?? 'Unknown Vehicle' }}
+                      </span>
+                      <span class="text-[0.8rem] font-mono font-bold text-[var(--p-primary-color)] tracking-wider">
+                        {{ getVehicle(req.vehicleId)?.licensePlate ?? '—' }}
+                      </span>
+                    </div>
+                    <Tag
+                      :value="STATUS_TAG[req.status].value"
+                      :severity="STATUS_TAG[req.status].severity"
+                      class="text-[0.65rem] font-bold uppercase tracking-wider"
+                    />
+                  </div>
+
+                  <p class="text-sm text-white leading-relaxed">{{ req.description }}</p>
+
+                  <div class="flex flex-wrap gap-1.5">
+                    <Tag
+                      v-for="svc in req.requestedServices"
+                      :key="svc"
+                      :value="svc"
+                      severity="secondary"
+                      class="text-[0.65rem]"
+                    />
+                  </div>
+
+                  <div class="flex items-center justify-between pt-3 border-t border-[rgba(94,119,149,0.1)]">
+                    <span class="text-[0.7rem] font-mono text-[#5E7795]">
+                      Created {{ new Date(req.createdAt).toLocaleDateString() }}
+                    </span>
+                    <Button
+                      label="View Details"
+                      severity="secondary"
+                      outlined
+                      size="small"
+                      @click="router.push({ name: 'service-request-detail', params: { id: req.id } })"
+                    />
+                  </div>
                 </div>
-
-                <div class="req-card-footer">
-                  <span class="req-date">Created {{ new Date(req.createdAt).toLocaleDateString() }}</span>
-                  <Button
-                    label="View Details"
-                    severity="secondary"
-                    outlined
-                    size="small"
-                    @click="router.push({ name: 'service-request-detail', params: { id: req.id } })"
-                  />
-                </div>
-              </article>
-            </div>
-          </template>
-        </div>
-      </template>
-    </div>
+              </template>
+            </Card>
+          </div>
+        </TabPanel>
+      </TabPanels>
+    </Tabs>
   </div>
 </template>
-
-<style scoped>
-.cor-hub {
-  max-width: 800px;
-}
-
-.cor-hub-header {
-  margin-bottom: 32px;
-}
-
-.cor-hub-title {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #F8FAFC;
-  margin: 0 0 8px;
-}
-
-.cor-hub-subtitle {
-  font-family: 'Inter', sans-serif;
-  font-size: 0.9375rem;
-  color: #799AB7;
-  margin: 0;
-}
-
-.cor-tabs {
-  max-width: 700px;
-}
-
-.tab-list {
-  display: flex;
-  gap: 4px;
-  margin-bottom: 24px;
-  border-bottom: 1px solid rgba(94, 119, 149, 0.15);
-}
-
-.tab-btn {
-  background: none;
-  border: none;
-  border-bottom: 2px solid transparent;
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 0.875rem;
-  font-weight: 700;
-  color: #799AB7;
-  padding: 10px 20px;
-  cursor: pointer;
-  transition: color 0.15s, border-color 0.15s;
-}
-
-.tab-btn:hover {
-  color: #F8FAFC;
-}
-
-.tab-btn--active {
-  color: #1B7A5A;
-  border-bottom-color: #1B7A5A;
-}
-
-.tab-panel {
-  animation: fadeIn 0.2s ease;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(4px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.cor-loading {
-  display: flex;
-  justify-content: center;
-  padding: 64px;
-}
-
-.cor-loading-text {
-  font-family: 'Inter', sans-serif;
-  color: #799AB7;
-  font-size: 1rem;
-}
-
-.cor-empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 64px 32px;
-  gap: 12px;
-}
-
-.cor-empty-text {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 1rem;
-  font-weight: 700;
-  color: #799AB7;
-  margin: 0;
-}
-
-.cor-empty-hint {
-  font-family: 'Inter', sans-serif;
-  font-size: 0.875rem;
-  color: #5E7795;
-  margin: 0;
-  text-align: center;
-}
-
-.requests-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.request-card {
-  background: #1a2630;
-  border: 1px solid rgba(94, 119, 149, 0.15);
-  border-radius: 12px;
-  padding: 20px 24px;
-}
-
-.req-card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 12px;
-}
-
-.req-vehicle {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.req-vehicle-model {
-  font-family: 'Inter', sans-serif;
-  font-size: 0.9375rem;
-  font-weight: 600;
-  color: #F8FAFC;
-}
-
-.req-vehicle-plate {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: #1B7A5A;
-  letter-spacing: 0.05em;
-}
-
-.status-badge {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 0.65rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  padding: 3px 8px;
-  border-radius: 4px;
-  flex-shrink: 0;
-}
-
-.status-pending {
-  color: #F59E0B;
-  background: rgba(245, 158, 11, 0.15);
-  border: 1px solid rgba(245, 158, 11, 0.3);
-}
-
-.status-completed {
-  color: #1B7A5A;
-  background: rgba(27, 122, 90, 0.15);
-  border: 1px solid rgba(27, 122, 90, 0.3);
-}
-
-.status-rejected {
-  color: #800C1F;
-  background: rgba(128, 12, 31, 0.15);
-  border: 1px solid rgba(128, 12, 31, 0.3);
-}
-
-.status-cancelled {
-  color: #799AB7;
-  background: rgba(121, 154, 183, 0.15);
-  border: 1px solid rgba(121, 154, 183, 0.3);
-}
-
-.req-description {
-  font-family: 'Inter', sans-serif;
-  font-size: 0.875rem;
-  color: #F8FAFC;
-  margin: 0 0 12px;
-  line-height: 1.5;
-}
-
-.req-services {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-bottom: 12px;
-}
-
-.req-service-tag {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 0.65rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  color: #799AB7;
-  background: rgba(121, 154, 183, 0.12);
-  border: 1px solid rgba(121, 154, 183, 0.2);
-  padding: 3px 10px;
-  border-radius: 4px;
-}
-
-.req-workshop-info {
-  display: flex;
-  gap: 24px;
-  background: rgba(27, 122, 90, 0.06);
-  border: 1px solid rgba(27, 122, 90, 0.15);
-  border-radius: 8px;
-  padding: 12px 16px;
-  margin-bottom: 12px;
-}
-
-.req-workshop-detail {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.req-workshop-label {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 0.6rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #799AB7;
-}
-
-.req-workshop-value {
-  font-family: 'Inter', sans-serif;
-  font-size: 0.875rem;
-  color: #F8FAFC;
-}
-
-.req-workshop-price {
-  font-family: 'IBM Plex Mono', monospace;
-  font-weight: 700;
-  color: #1B7A5A;
-}
-
-.req-pending-count {
-  font-family: 'Inter', sans-serif;
-  font-size: 0.8rem;
-  color: #799AB7;
-  margin-bottom: 12px;
-}
-
-.req-card-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-top: 12px;
-  border-top: 1px solid rgba(94, 119, 149, 0.1);
-}
-
-.req-date {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 0.7rem;
-  color: #5E7795;
-}
-
-@media (max-width: 480px) {
-  .req-card-footer {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
-  }
-
-  .req-workshop-info {
-    flex-direction: column;
-    gap: 12px;
-  }
-}
-</style>

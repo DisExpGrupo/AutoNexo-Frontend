@@ -4,6 +4,9 @@ import { useRouter } from 'vue-router';
 import { bookingService } from '@/modules/matching/services/booking.service';
 import type { Booking } from '@/modules/matching/services/booking.service';
 import Button from 'primevue/button';
+import Card from 'primevue/card';
+import Tag from 'primevue/tag';
+import Skeleton from 'primevue/skeleton';
 
 const router = useRouter();
 
@@ -95,12 +98,12 @@ const BOOKING_STATUS_LABELS: Record<Booking['status'], string> = {
   CANCELLED: 'Cancelled',
 };
 
-const BOOKING_STATUS_CLASS: Record<Booking['status'], string> = {
-  PENDING_SCHEDULE: 'status-pending',
-  SCHEDULED: 'status-scheduled',
-  IN_PROGRESS: 'status-inprogress',
-  COMPLETED: 'status-completed',
-  CANCELLED: 'status-cancelled',
+const BOOKING_STATUS_SEVERITY: Record<Booking['status'], 'warning' | 'success' | 'secondary' | 'danger'> = {
+  PENDING_SCHEDULE: 'warning',
+  SCHEDULED: 'success',
+  IN_PROGRESS: 'warning',
+  COMPLETED: 'secondary',
+  CANCELLED: 'danger',
 };
 
 function formatPrice(amount: number, currency: string): string {
@@ -185,162 +188,170 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="agenda-hub">
-    <div class="agenda-hub-header">
-      <h1 class="agenda-hub-title">Agenda</h1>
-      <p class="agenda-hub-subtitle">Overview of your upcoming scheduled services.</p>
+  <div class="an-dashboard">
+    <div class="an-dashboard-header">
+      <h1 class="an-dashboard-title">Agenda</h1>
+      <p class="an-dashboard-subtitle">Overview of your upcoming scheduled services.</p>
     </div>
 
-    <div class="agenda-layout">
-      <div class="agenda-calendar-col">
-        <div class="agenda-calendar-card">
-          <div class="cal-header">
-            <button class="cal-nav-btn" type="button" aria-label="Previous month" @click="prevMonth">
-              <span aria-hidden="true">‹</span>
-            </button>
-            <button class="cal-month-label" type="button" @click="toggleMonthPicker">
-              <span class="cal-month">{{ calendarMonthLabel }}</span>
-              <span class="cal-year">{{ calendarYearLabel }}</span>
-            </button>
-            <button class="cal-nav-btn" type="button" aria-label="Next month" @click="nextMonth">
-              <span aria-hidden="true">›</span>
-            </button>
-          </div>
-
-          <div class="cal-subheader">
-            <span class="cal-subtitle">Jump to date</span>
-            <button class="cal-today-btn" type="button" @click="goToday">Today</button>
-          </div>
-
-          <div v-if="showMonthPicker" class="cal-picker">
-            <div class="cal-picker-header">
-              <button class="cal-picker-nav" type="button" aria-label="Previous year" @click="prevPickerYear">‹</button>
-              <span class="cal-picker-year">{{ pickerYear }}</span>
-              <button class="cal-picker-nav" type="button" aria-label="Next year" @click="nextPickerYear">›</button>
-            </div>
-            <div class="cal-month-grid">
-              <button
-                v-for="(label, index) in monthLabels"
-                :key="label"
-                class="cal-month-btn"
-                :class="{ 'is-active': index === calendarMonth.getMonth() && pickerYear === calendarMonth.getFullYear() }"
-                type="button"
-                @click="selectMonth(index)"
-              >
-                {{ label }}
+    <div class="agenda-layout grid grid-cols-1 gap-6 items-start md:grid-cols-[360px_1fr]">
+      <div class="flex flex-col gap-4 order-1 md:order-0">
+        <Card class="relative">
+          <template #content>
+            <div class="cal-header">
+              <button class="cal-nav-btn" type="button" aria-label="Previous month" @click="prevMonth">
+                <span aria-hidden="true">‹</span>
+              </button>
+              <button class="cal-month-label" type="button" @click="toggleMonthPicker">
+                <span class="cal-month">{{ calendarMonthLabel }}</span>
+                <span class="cal-year">{{ calendarYearLabel }}</span>
+              </button>
+              <button class="cal-nav-btn" type="button" aria-label="Next month" @click="nextMonth">
+                <span aria-hidden="true">›</span>
               </button>
             </div>
-          </div>
 
-          <div class="cal-weekdays">
-            <span v-for="day in weekdayLabels" :key="day">{{ day }}</span>
-          </div>
+            <div class="cal-subheader">
+              <span class="cal-subtitle">Jump to date</span>
+              <button class="cal-today-btn" type="button" @click="goToday">Today</button>
+            </div>
 
-          <div class="cal-grid">
-            <button
-              v-for="day in calendarDays"
-              :key="day.key"
-              type="button"
-              class="cal-day"
-              :class="{ 'other-month': !day.isCurrentMonth, 'is-today': day.isToday, 'is-selected': day.isSelected }"
-              @click="selectDay(day.date)"
-            >
-              <span class="cal-day-num">{{ day.date.getDate() }}</span>
-              <span v-if="day.dots.length > 0" class="cal-day-badges">
-                <span v-for="dot in day.dots" :key="dot" class="cal-dot" :class="`cal-dot--${dot}`"></span>
-              </span>
-            </button>
-          </div>
+            <div v-if="showMonthPicker" class="cal-picker">
+              <div class="cal-picker-header">
+                <button class="cal-picker-nav" type="button" aria-label="Previous year" @click="prevPickerYear">‹</button>
+                <span class="cal-picker-year">{{ pickerYear }}</span>
+                <button class="cal-picker-nav" type="button" aria-label="Next year" @click="nextPickerYear">›</button>
+              </div>
+              <div class="cal-month-grid">
+                <button
+                  v-for="(label, index) in monthLabels"
+                  :key="label"
+                  class="cal-month-btn"
+                  :class="{ 'is-active': index === calendarMonth.getMonth() && pickerYear === calendarMonth.getFullYear() }"
+                  type="button"
+                  @click="selectMonth(index)"
+                >
+                  {{ label }}
+                </button>
+              </div>
+            </div>
 
-          <div class="calendar-legend">
-            <div class="legend-item">
-              <div class="legend-dot legend-dot--pending"></div>
-              <span>Pending Schedule</span>
+            <div class="cal-weekdays">
+              <span v-for="day in weekdayLabels" :key="day">{{ day }}</span>
             </div>
-            <div class="legend-item">
-              <div class="legend-dot legend-dot--scheduled"></div>
-              <span>Scheduled</span>
+
+            <div class="cal-grid">
+              <button
+                v-for="day in calendarDays"
+                :key="day.key"
+                type="button"
+                class="cal-day"
+                :class="{ 'other-month': !day.isCurrentMonth, 'is-today': day.isToday, 'is-selected': day.isSelected }"
+                @click="selectDay(day.date)"
+              >
+                <span class="cal-day-num">{{ day.date.getDate() }}</span>
+                <span v-if="day.dots.length > 0" class="cal-day-badges">
+                  <span v-for="dot in day.dots" :key="dot" class="cal-dot" :class="`cal-dot--${dot}`"></span>
+                </span>
+              </button>
             </div>
-            <div class="legend-item">
-              <div class="legend-dot legend-dot--inprogress"></div>
-              <span>In Progress</span>
+
+            <div class="calendar-legend">
+              <div class="legend-item">
+                <div class="legend-dot legend-dot--pending"></div>
+                <span>Pending Schedule</span>
+              </div>
+              <div class="legend-item">
+                <div class="legend-dot legend-dot--scheduled"></div>
+                <span>Scheduled</span>
+              </div>
+              <div class="legend-item">
+                <div class="legend-dot legend-dot--inprogress"></div>
+                <span>In Progress</span>
+              </div>
             </div>
-          </div>
-        </div>
+          </template>
+        </Card>
       </div>
 
-      <div class="agenda-list-col">
-        <div class="agenda-list-header">
+      <div class="flex flex-col gap-4">
+        <div class="flex justify-between items-center">
           <template v-if="selectedDate">
-            <span class="agenda-list-title">{{ selectedDate.toLocaleDateString('es-PE', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) }}</span>
-            <button class="agenda-list-clear" @click="selectedDate = null">Show all upcoming</button>
+            <span class="font-mono text-sm font-bold text-white capitalize">{{ selectedDate.toLocaleDateString('es-PE', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) }}</span>
+            <Button
+              link
+              class="p-0 font-mono text-xs font-bold text-[#1B7A5A]"
+              @click="selectedDate = null"
+            >
+              Show all upcoming
+            </Button>
           </template>
           <template v-else>
-            <span class="agenda-list-title">Upcoming Services</span>
+            <span class="font-mono text-sm font-bold text-white">Upcoming Services</span>
           </template>
         </div>
 
         <template v-if="loading">
-          <div class="agenda-loading">Loading bookings...</div>
-        </template>
-
-        <template v-else-if="filteredBookings.length === 0">
-          <div class="agenda-empty">
-            <svg width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden="true">
-              <rect x="6" y="8" width="28" height="26" rx="4" stroke="#799AB7" stroke-width="1.5"/>
-              <path d="M6 15h28" stroke="#799AB7" stroke-width="1.5"/>
-              <path d="M13 5v6M27 5v6" stroke="#799AB7" stroke-width="1.5" stroke-linecap="round"/>
-            </svg>
-            <p class="agenda-empty-text">No services scheduled.</p>
+          <div class="flex flex-col gap-3">
+            <Skeleton v-for="i in 3" :key="i" height="8rem" class="rounded-xl" />
           </div>
         </template>
 
+        <template v-else-if="filteredBookings.length === 0">
+          <Card>
+            <template #content>
+              <div class="flex flex-col items-center py-16 px-8 gap-3">
+                <i class="pi pi-calendar text-[2.5rem] text-[#799AB7]"></i>
+                <p class="font-mono text-sm font-bold text-[#799AB7] m-0">No services scheduled.</p>
+              </div>
+            </template>
+          </Card>
+        </template>
+
         <template v-else>
-          <div class="agenda-timeline">
-            <article
-              v-for="booking in filteredBookings"
-              :key="booking.id"
-              class="agenda-card"
-            >
-              <div class="agenda-card-time">
-                <span class="agenda-card-time-value">{{ formatTime(booking.scheduledDate) }}</span>
-                <span class="agenda-card-date-value">{{ formatDate(booking.scheduledDate) }}</span>
-              </div>
-
-              <div class="agenda-card-body">
-                <div class="agenda-card-header-row">
-                  <span :class="['status-badge', BOOKING_STATUS_CLASS[booking.status]]">
-                    {{ BOOKING_STATUS_LABELS[booking.status] }}
-                  </span>
-                  <span class="agenda-card-request">Req. #{{ booking.serviceRequestId }}</span>
-                </div>
-
-                <div class="agenda-card-details">
-                  <div class="agenda-card-detail">
-                    <span class="detail-label">Workshop</span>
-                    <span class="detail-value">#{{ booking.workshopId }}</span>
+          <div class="flex flex-col gap-3">
+            <Card v-for="booking in filteredBookings" :key="booking.id">
+              <template #content>
+                <div class="flex gap-5 items-start max-md:flex-col max-md:gap-3">
+                  <div class="flex flex-col items-center min-w-[72px] flex-shrink-0 max-md:flex-row max-md:gap-2 max-md:items-center">
+                    <span class="font-mono text-base font-bold text-[#1B7A5A]">{{ formatTime(booking.scheduledDate) }}</span>
+                    <span class="font-mono text-xs text-[#799AB7]">{{ formatDate(booking.scheduledDate) }}</span>
                   </div>
-                  <div class="agenda-card-detail">
-                    <span class="detail-label">Price</span>
-                    <span class="detail-value detail-price">{{ formatPrice(booking.finalPriceAmount, booking.currency) }}</span>
+
+                  <div class="flex-1 min-w-0 flex flex-col gap-2">
+                    <div class="flex items-center gap-2">
+                      <Tag :severity="BOOKING_STATUS_SEVERITY[booking.status]" :value="BOOKING_STATUS_LABELS[booking.status]" />
+                      <span class="font-mono text-xs text-[#5E7795] ml-auto">Req. #{{ booking.serviceRequestId }}</span>
+                    </div>
+
+                    <div class="flex gap-5">
+                      <div class="flex flex-col gap-0.5">
+                        <span class="font-mono text-[0.6rem] font-bold tracking-wider uppercase text-[#5E7795]">Workshop</span>
+                        <span class="font-sans text-sm text-[#F8FAFC]">#{{ booking.workshopId }}</span>
+                      </div>
+                      <div class="flex flex-col gap-0.5">
+                        <span class="font-mono text-[0.6rem] font-bold tracking-wider uppercase text-[#5E7795]">Price</span>
+                        <span class="font-mono text-sm font-bold text-[#1B7A5A]">{{ formatPrice(booking.finalPriceAmount, booking.currency) }}</span>
+                      </div>
+                    </div>
+
+                    <div v-if="booking.servicesToPerform.length > 0" class="flex flex-wrap gap-1.5">
+                      <Tag v-for="svc in booking.servicesToPerform" :key="svc" severity="secondary" :value="svc" />
+                    </div>
+                  </div>
+
+                  <div class="flex items-center flex-shrink-0">
+                    <Button
+                      label="View Details"
+                      severity="secondary"
+                      outlined
+                      size="small"
+                      @click="router.push({ name: 'service-request-detail', params: { id: booking.serviceRequestId } })"
+                    />
                   </div>
                 </div>
-
-                <div v-if="booking.servicesToPerform.length > 0" class="agenda-services">
-                  <span v-for="svc in booking.servicesToPerform" :key="svc" class="agenda-service-tag">{{ svc }}</span>
-                </div>
-              </div>
-
-              <div class="agenda-card-actions">
-                <Button
-                  label="View Details"
-                  severity="secondary"
-                  outlined
-                  size="small"
-                  @click="router.push({ name: 'service-request-detail', params: { id: booking.serviceRequestId } })"
-                />
-              </div>
-            </article>
+              </template>
+            </Card>
           </div>
         </template>
       </div>
@@ -349,50 +360,6 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-.agenda-hub {
-  max-width: 1000px;
-}
-
-.agenda-hub-header {
-  margin-bottom: 28px;
-}
-
-.agenda-hub-title {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #F8FAFC;
-  margin: 0 0 8px;
-}
-
-.agenda-hub-subtitle {
-  font-family: 'Inter', sans-serif;
-  font-size: 0.9375rem;
-  color: #799AB7;
-  margin: 0;
-}
-
-.agenda-layout {
-  display: grid;
-  grid-template-columns: 360px 1fr;
-  gap: 24px;
-  align-items: start;
-}
-
-.agenda-calendar-col {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.agenda-calendar-card {
-  background: #1a2630;
-  border: 1px solid rgba(94, 119, 149, 0.15);
-  border-radius: 16px;
-  padding: 24px;
-  position: relative;
-}
-
 .cal-header {
   display: grid;
   grid-template-columns: 40px 1fr 40px;
@@ -715,246 +682,5 @@ onMounted(async () => {
 .legend-dot--inprogress {
   background: rgba(245, 158, 11, 1);
   border: 2px solid rgba(245, 158, 11, 0.4);
-}
-
-
-.agenda-list-col {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.agenda-list-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.agenda-list-title {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 0.875rem;
-  font-weight: 700;
-  color: #F8FAFC;
-  text-transform: capitalize;
-}
-
-.agenda-list-clear {
-  background: none;
-  border: none;
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: #1B7A5A;
-  cursor: pointer;
-  padding: 0;
-  text-decoration: underline;
-}
-
-.agenda-loading {
-  font-family: 'Inter', sans-serif;
-  font-size: 0.875rem;
-  color: #799AB7;
-  padding: 48px;
-  text-align: center;
-}
-
-.agenda-empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 64px 32px;
-  gap: 12px;
-  background: #1a2630;
-  border: 1px solid rgba(94, 119, 149, 0.15);
-  border-radius: 16px;
-}
-
-.agenda-empty-text {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: #799AB7;
-  margin: 0;
-}
-
-.agenda-timeline {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.agenda-card {
-  background: #1a2630;
-  border: 1px solid rgba(94, 119, 149, 0.15);
-  border-radius: 12px;
-  padding: 20px;
-  display: flex;
-  gap: 20px;
-  align-items: flex-start;
-  transition: border-color 0.15s;
-}
-
-.agenda-card:hover {
-  border-color: rgba(27, 122, 90, 0.3);
-}
-
-.agenda-card-time {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  min-width: 72px;
-  flex-shrink: 0;
-}
-
-.agenda-card-time-value {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 1rem;
-  font-weight: 700;
-  color: #1B7A5A;
-}
-
-.agenda-card-date-value {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 0.65rem;
-  color: #799AB7;
-  margin-top: 2px;
-}
-
-.agenda-card-body {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.agenda-card-header-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.status-badge {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 0.65rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  padding: 3px 8px;
-  border-radius: 4px;
-}
-
-.status-pending {
-  color: #F59E0B;
-  background: rgba(245, 158, 11, 0.15);
-  border: 1px solid rgba(245, 158, 11, 0.3);
-}
-
-.status-scheduled {
-  color: #1B7A5A;
-  background: rgba(27, 122, 90, 0.15);
-  border: 1px solid rgba(27, 122, 90, 0.3);
-}
-
-.status-inprogress {
-  color: #F59E0B;
-  background: rgba(245, 158, 11, 0.15);
-  border: 1px solid rgba(245, 158, 11, 0.3);
-}
-
-.status-completed {
-  color: #799AB7;
-  background: rgba(121, 154, 183, 0.15);
-  border: 1px solid rgba(121, 154, 183, 0.3);
-}
-
-.status-cancelled {
-  color: #800C1F;
-  background: rgba(128, 12, 31, 0.15);
-  border: 1px solid rgba(128, 12, 31, 0.3);
-}
-
-.agenda-card-request {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 0.7rem;
-  color: #5E7795;
-  margin-left: auto;
-}
-
-.agenda-card-details {
-  display: flex;
-  gap: 20px;
-}
-
-.agenda-card-detail {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.detail-label {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 0.6rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #5E7795;
-}
-
-.detail-value {
-  font-family: 'Inter', sans-serif;
-  font-size: 0.875rem;
-  color: #F8FAFC;
-}
-
-.detail-price {
-  font-family: 'IBM Plex Mono', monospace;
-  font-weight: 700;
-  color: #1B7A5A;
-}
-
-.agenda-services {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.agenda-service-tag {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 0.65rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  color: #799AB7;
-  background: rgba(121, 154, 183, 0.1);
-  border: 1px solid rgba(121, 154, 183, 0.2);
-  padding: 3px 8px;
-  border-radius: 4px;
-}
-
-.agenda-card-actions {
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
-}
-
-@media (max-width: 768px) {
-  .agenda-layout {
-    grid-template-columns: 1fr;
-  }
-
-  .agenda-calendar-col {
-    order: 2;
-  }
-
-  .agenda-card {
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .agenda-card-time {
-    flex-direction: row;
-    gap: 8px;
-    align-items: center;
-  }
 }
 </style>
