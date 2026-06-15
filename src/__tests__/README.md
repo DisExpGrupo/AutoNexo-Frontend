@@ -135,4 +135,4 @@ describe('ServiceRequestDetailView', () => {
 1. **New service?** → Add to `src/__tests__/services/<name>.service.test.ts`
 2. **New view?** → Add to `src/__tests__/views/<Name>View.test.ts`
 3. **New store?** → Test in integration tests (mount component that uses it)
-4. **New workflow?** → Add E2E feature file in `e2e/features/`
+4. **New workflow?** → Add E2E feature file in `../../e2e/features/` (see `e2e/README.md`)
